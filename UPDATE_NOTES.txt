@@ -1,0 +1,83 @@
+HentaCatcher v36 — Mini App Vault Interface
+=============================================
+
+Scope: Mini App only
+--------------------
+This release changes only the Mini App presentation in `miniapp/index.html`
+and this release note. No bot command, handler, moderation policy, database
+schema, API route, authentication rule, game economy, or server configuration
+was changed.
+
+Vault interface redesign
+------------------------
+The previous Mini App appearance has been replaced with a new responsive
+"Collection Vault" interface:
+
+* A compact top app bar provides the HentaCatcher Vault identity and theme
+  control on every page.
+* The Profile page is now a player command deck with a clear identity panel,
+  level progress, two-by-two stat tiles, a rank signal card, daily-reward hub,
+  and direct collection/ranking actions.
+* Harem, Market, Love, and Leaderboard now use consistent section labels,
+  glass surfaces, stronger content hierarchy, redesigned filters, modern card
+  framing, and a floating bottom navigation dock.
+* Detail sheets, action dialogs, loading states, empty states, daily cards,
+  market actions, Love panels, leaderboard rows, and notifications share the
+  same visual system.
+* The design is responsive for narrow Telegram WebViews and wider desktop
+  previews, respects safe-area insets, has visible keyboard focus states, and
+  reduces animation when the device requests reduced motion.
+
+New theme system
+----------------
+The Mini App now includes three new full-interface themes:
+
+* `Void` — violet and cyan Collection Vault default.
+* `Aurora` — mint and blue glass interface.
+* `Ember` — amber and rose interface.
+
+The chosen theme remains stored locally. Existing saved `dark`, `night`, and
+`neko` choices are migrated automatically to Void, Aurora, and Ember.
+
+Functional compatibility
+------------------------
+The existing, server-authoritative Mini App behavior is retained unchanged:
+
+* Telegram signed init-data authentication and API-base resolution.
+* Profile, Harem, Market, Love, Daily, protected media, and Leaderboard
+  requests.
+* Harem search, sorting, rarity filters, lazy media loading, card details,
+  player-market actions, and Love actions.
+* All existing element IDs, client-side API calls, and action handlers needed
+  by the Mini App logic.
+
+The remote Google Font request was removed; the redesign uses the WebView's
+native system font stack so the interface remains usable without a font CDN.
+
+Package-only delivery
+---------------------
+This v36 package was prepared and validated offline. No live PostgreSQL,
+Redis, Telegram API, migration, bot/API server, deployment, browser, or
+network service was started while producing it.
+
+The final ZIP preserves the project-root layout and includes the required root
+`.env` file and this `UPDATE_NOTES.txt`. Generated `__pycache__`, `.pyc`, and
+`.pyo` artifacts are excluded. Earlier versioned archives, including v33, v34,
+and v35, are preserved unchanged.
+
+Offline validation performed
+----------------------------
+* Parsed the rebuilt HTML and confirmed all 69 unique IDs, including every
+  Mini App interaction target used by the existing JavaScript.
+* Confirmed there are no duplicate IDs and that the one inline application
+  script and its new theme controls are structurally present.
+* Extracted the inline script and passed a local JavaScript syntax check.
+* Verified that existing client API request paths and data/action hooks remain
+  intact after the presentation-only rewrite.
+* Verified the final archive CRC, manifest, required root files,
+  extracted-source parsing, packaged offline tests, and generated-artifact
+  exclusions.
+
+No live database test, Redis test, Telegram send, real migration, runtime
+bot/API import, server start, browser end-to-end test, deployment, or live
+service connection was performed.

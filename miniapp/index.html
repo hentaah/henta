@@ -1,0 +1,3273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Change only this value if the API moves to another deployment/domain. -->
+  <meta name="hentacatcher-api" content="https://henta-production.up.railway.app">
+  <title>HentaCatcher · Vault</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <meta name="theme-color" content="#0b1020">
+  <style>
+    /* ── THEME VARIABLES ── */
+    :root {
+      --neon: #ff8800;
+      --neon2: #ffb300;
+      --neon-glow: rgba(255,136,0,0.65);
+      --neon-soft: rgba(255,136,0,0.22);
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    html,body { height:100%; overflow:hidden; }
+    body { font-family:'Space Grotesk',sans-serif; background:#000; color:#fff; }
+
+    /* ── THREE-DOT MENU ── */
+    #theme-menu-wrap {
+      position:relative; display:inline-block;
+    }
+    #theme-dots-btn {
+      width:28px; height:28px; border-radius:50%;
+      border:1px solid rgba(255,255,255,0.18);
+      background:rgba(255,255,255,0.06);
+      cursor:pointer; display:flex; align-items:center; justify-content:center;
+      flex-direction:column; gap:3px; padding:0;
+      transition:all 0.25s; flex-shrink:0;
+    }
+    #theme-dots-btn span { display:block; width:3px; height:3px; border-radius:50%; background:rgba(255,255,255,0.6); transition:background 0.25s; }
+    body.neko-theme #theme-dots-btn  { border-color:var(--neon); box-shadow:0 0 14px var(--neon-glow); }
+    body.neko-theme #theme-dots-btn span  { background:var(--neon); }
+    body.night-theme #theme-dots-btn { border-color:#00aaff; box-shadow:0 0 14px rgba(0,170,255,0.55); }
+    body.night-theme #theme-dots-btn span { background:#00aaff; }
+
+    #theme-dropdown {
+      position:absolute; top:34px; right:0;
+      background:rgba(10,10,12,0.97); border:1px solid rgba(255,255,255,0.12);
+      border-radius:16px; padding:6px; min-width:148px;
+      box-shadow:0 8px 32px rgba(0,0,0,0.6); backdrop-filter:blur(20px);
+      opacity:0; transform:scale(0.92) translateY(-6px); transform-origin:top right;
+      pointer-events:none; transition:opacity 0.18s, transform 0.18s;
+    }
+    #theme-dropdown.open { opacity:1; transform:scale(1) translateY(0); pointer-events:all; }
+    .theme-opt {
+      display:flex; align-items:center; gap:9px; padding:10px 12px;
+      border-radius:10px; border:none; width:100%; background:transparent;
+      color:rgba(255,255,255,0.7); cursor:pointer; font-family:inherit;
+      font-size:12px; font-weight:700; letter-spacing:0.2px; transition:background 0.15s, color 0.15s; text-align:left;
+    }
+    .theme-opt:hover { background:rgba(255,255,255,0.07); color:#fff; }
+    .theme-opt .tdot { width:10px; height:10px; border-radius:50%; flex-shrink:0; border:1.5px solid transparent; }
+    .theme-opt.tactive .tdot { border-color:rgba(255,255,255,0.55); }
+    .tdot-dark  { background:#444; }
+    .tdot-neko  { background:#ff8800; box-shadow:0 0 6px rgba(255,136,0,0.7); }
+    .tdot-night { background:#00aaff; box-shadow:0 0 6px rgba(0,170,255,0.7); }
+    .theme-opt.tactive { color:#fff; }
+    .t-neko.tactive  { color:#ff9900; }
+    .t-night.tactive { color:#00aaff; }
+    body.neko-theme  #theme-dropdown { background:rgba(8,3,0,0.97); border-color:rgba(255,136,0,0.2); }
+    body.night-theme #theme-dropdown { background:rgba(0,4,14,0.97); border-color:rgba(0,120,255,0.2); }
+
+    /* ── NEON THEME OVERRIDES ── */
+
+    /* Background cats */
+    body.neko-theme {
+      background:#0a0500;
+      color:#fff;
+    }
+    body.neko-theme::before {
+      content:'';
+      position:fixed; inset:0; z-index:0; pointer-events:none;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Cdefs%3E%3Cfilter id='g1' x='-60%25' y='-60%25' width='220%25' height='220%25'%3E%3CfeGaussianBlur stdDeviation='3.5' result='blur'/%3E%3CfeMerge%3E%3CfeMergeNode in='blur'/%3E%3CfeMergeNode in='SourceGraphic'/%3E%3C/feMerge%3E%3C/filter%3E%3Cfilter id='g2' x='-60%25' y='-60%25' width='220%25' height='220%25'%3E%3CfeGaussianBlur stdDeviation='2.5' result='blur'/%3E%3CfeMerge%3E%3CfeMergeNode in='blur'/%3E%3CfeMergeNode in='SourceGraphic'/%3E%3C/feMerge%3E%3C/filter%3E%3C/defs%3E%3Ctext y='55' x='12' font-size='40' opacity='0.13' fill='%23ff8800' filter='url(%23g1)'%3E🐾%3C/text%3E%3Ctext y='128' x='75' font-size='30' opacity='0.09' fill='%23ffaa00' filter='url(%23g2)'%3E🐾%3C/text%3E%3C/svg%3E");
+      background-size:150px 150px;
+    }
+    body.neko-theme::after {
+      content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+      background:repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,136,0,0.012) 2px, rgba(255,136,0,0.012) 4px);
+    }
+
+    /* Navbar neon */
+    body.neko-theme .navbar {
+      background:rgba(8,3,0,0.96);
+      border-top-color:rgba(255,136,0,0.25);
+    }
+    body.neko-theme .nav-item.active { color:var(--neon); }
+    body.neko-theme .nav-item.active::before { background:var(--neon); box-shadow:0 0 8px var(--neon-glow); }
+
+    /* Hero neon */
+    body.neko-theme .hero {
+      border-color:rgba(255,136,0,0.25);
+      background:#0d0600;
+    }
+    body.neko-theme .hero-bg {
+      background:
+        radial-gradient(ellipse 80% 60% at 100% 0%, rgba(255,136,0,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 0% 100%, rgba(255,179,0,0.08) 0%, transparent 60%);
+    }
+    body.neko-theme .ava { border-color:rgba(255,136,0,0.5); background:#1a0a00; color:var(--neon); }
+    body.neko-theme .ava-ring { border-color:rgba(255,136,0,0.3); }
+    @keyframes ring-pulse-neon { 0%,100%{opacity:0.5;transform:scale(1)} 50%{opacity:1;transform:scale(1.04)} }
+    body.neko-theme .ava-ring { animation:ring-pulse-neon 2s ease-in-out infinite; box-shadow:0 0 12px var(--neon-glow); }
+    body.neko-theme .hero-badge { background:rgba(255,136,0,0.1); border-color:rgba(255,136,0,0.3); }
+    body.neko-theme .hero-badge::before { background:var(--neon); box-shadow:0 0 6px var(--neon-glow); }
+
+    /* XP bar neon */
+    body.neko-theme .xp-track { background:rgba(255,136,0,0.12); }
+    body.neko-theme .xp-bar { background:linear-gradient(90deg, var(--neon), var(--neon2)); }
+    body.neko-theme .xp-bar::after { background:var(--neon2); box-shadow:0 0 10px var(--neon-glow); }
+    body.neko-theme .xp-lvl { color:var(--neon); }
+
+    /* Stat cards neon */
+    body.neko-theme .stat { background:#0d0600; border-color:rgba(255,136,0,0.15); }
+    body.neko-theme .stat::before { background:rgba(255,136,0,0.15); }
+    body.neko-theme .stat-num {
+      color:var(--neon);
+      text-shadow:0 0 12px var(--neon-glow), 0 0 24px rgba(255,136,0,0.3);
+    }
+    body.neko-theme .stat-lbl { color:rgba(255,179,0,0.5); }
+
+    /* Rank card neon */
+    body.neko-theme .rank-card { background:#0d0600; border-color:rgba(255,136,0,0.15); }
+    body.neko-theme .rank-num {
+      color:var(--neon);
+      text-shadow:0 0 16px var(--neon-glow), 0 0 30px rgba(255,136,0,0.25);
+    }
+    body.neko-theme .rank-lbl { color:rgba(255,179,0,0.45); }
+
+    /* Buttons neon */
+    body.neko-theme .btn-primary { background:var(--neon); color:#000; box-shadow:0 0 18px var(--neon-glow); }
+    body.neko-theme .btn-secondary { background:#0d0600; border-color:rgba(255,136,0,0.3); color:var(--neon); }
+
+    /* Daily hub neon */
+    body.neko-theme .daily-hub {
+      border-color:rgba(255,136,0,0.2);
+      background:radial-gradient(circle at 100% 0%, rgba(255,136,0,0.1), transparent 48%), #0a0500;
+    }
+    body.neko-theme .daily-claim { border-color:rgba(255,136,0,0.15); background:rgba(255,136,0,0.05); }
+    body.neko-theme .daily-claim-button { background:var(--neon); border-color:var(--neon); color:#000; box-shadow:0 0 10px var(--neon-glow); }
+
+    /* Cards neon */
+    body.neko-theme .card { background:#0d0600; border-color:rgba(255,136,0,0.12); }
+    body.neko-theme .card.fav { border-color:rgba(255,136,0,0.55); box-shadow:0 0 14px rgba(255,136,0,0.2); }
+    body.neko-theme .card-name { color:#fff; }
+    body.neko-theme .card-anime { color:rgba(255,179,0,0.45); }
+    body.neko-theme .rl-OP { background:var(--neon); box-shadow:0 0 8px var(--neon-glow); }
+    body.neko-theme .rl-Eternal { background:var(--neon2); box-shadow:0 0 12px var(--neon-glow); }
+    body.neko-theme .rl-Suspicious { background:#ffdc62; box-shadow:0 0 14px rgba(255,211,72,0.82); }
+    body.neko-theme .rl-OverLord { background:#fff1a3; box-shadow:0 0 20px rgba(255,205,43,1); }
+
+    /* Chips neon */
+    body.neko-theme .chip { border-color:rgba(255,136,0,0.2); color:rgba(255,179,0,0.45); }
+    body.neko-theme .chip.on { background:var(--neon); border-color:var(--neon); color:#000; box-shadow:0 0 10px var(--neon-glow); }
+
+    /* Leaderboard neon */
+    body.neko-theme .lb-row { background:#0d0600; border-color:rgba(255,136,0,0.12); }
+    body.neko-theme .lb-row.gold { border-color:rgba(255,136,0,0.4); }
+    body.neko-theme .lb-score {
+      color:var(--neon);
+      text-shadow:0 0 10px var(--neon-glow);
+    }
+    body.neko-theme .lb-ava { border-color:rgba(255,136,0,0.4); background:#1a0a00; }
+
+    /* Search/sort neon */
+    body.neko-theme .harem-search, body.neko-theme .harem-sort, body.neko-theme .sell-price-input {
+      background:#0d0600; border-color:rgba(255,136,0,0.2); color:#fff;
+    }
+    body.neko-theme .harem-search:focus, body.neko-theme .harem-sort:focus, body.neko-theme .sell-price-input:focus {
+      border-color:var(--neon); box-shadow:0 0 8px rgba(255,136,0,0.2);
+    }
+    body.neko-theme .harem-search::placeholder { color:rgba(255,179,0,0.35); }
+
+    /* Spin / loading neon */
+    body.neko-theme .spin { border-top-color:var(--neon); border-color:rgba(255,136,0,0.15); border-top-color:var(--neon); }
+    body.neko-theme .spin-txt { color:rgba(255,136,0,0.6); }
+
+    /* Modal neon */
+    body.neko-theme .modal-sheet { background:#0a0500; border-color:rgba(255,136,0,0.2); }
+    body.neko-theme .modal-close { border-color:rgba(255,136,0,0.3); background:rgba(0,0,0,0.8); color:#fff; }
+    body.neko-theme .modal-buy { background:var(--neon); color:#000; border-color:var(--neon); box-shadow:0 0 14px var(--neon-glow); }
+    body.neko-theme .detail-badge { background:rgba(255,136,0,0.1); border-color:rgba(255,136,0,0.25); color:rgba(255,200,100,0.9); }
+    body.neko-theme .detail-row { background:rgba(255,136,0,0.04); border-color:rgba(255,136,0,0.1); }
+
+    /* Buy button neon */
+    body.neko-theme .buy-btn { background:var(--neon); border-color:var(--neon); color:#000; box-shadow:0 0 8px var(--neon-glow); }
+    body.neko-theme .empty-retry { border-color:rgba(255,136,0,0.4); color:var(--neon); }
+
+    /* Toast neon */
+    body.neko-theme .toast { background:#0d0600; border-color:rgba(255,136,0,0.3); }
+
+    /* Page header neon */
+    body.neko-theme .ph-title { color:#fff; }
+    body.neko-theme .ph-count { color:rgba(255,179,0,0.5); }
+
+    /* Collection progress neon */
+    body.neko-theme .collection-progress { border-color:rgba(255,136,0,0.15); background:linear-gradient(135deg, rgba(255,136,0,0.08), rgba(255,136,0,0.02)); }
+    body.neko-theme .collection-progress-bar { background:linear-gradient(90deg, var(--neon), var(--neon2)); }
+    body.neko-theme .collection-progress-track { background:rgba(255,136,0,0.12); }
+
+    /* Market note neon */
+    body.neko-theme .market-note { color:rgba(255,179,0,0.4); }
+    body.neko-theme .market-price { color:var(--neon); text-shadow:0 0 8px var(--neon-glow); }
+
+    /* Action modals neon */
+    body.neko-theme .action-modal-button { border-color:rgba(255,136,0,0.35); color:var(--neon); }
+    body.neko-theme .action-modal-button.primary { background:var(--neon); color:#000; border-color:var(--neon); box-shadow:0 0 12px var(--neon-glow); }
+
+
+    /* ── NIGHT THEME (blue neon) ── */
+    :root { --night-neon:#00aaff; --night-neon2:#0066ff; --night-glow:rgba(0,170,255,0.55); }
+
+    body.night-theme { background:#00040e; color:#fff; }
+    body.night-theme::before {
+      content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cdefs%3E%3Cfilter id='gm' x='-80%25' y='-80%25' width='260%25' height='260%25'%3E%3CfeGaussianBlur stdDeviation='5' result='blur'/%3E%3CfeMerge%3E%3CfeMergeNode in='blur'/%3E%3CfeMergeNode in='SourceGraphic'/%3E%3C/feMerge%3E%3C/filter%3E%3Cfilter id='gs' x='-80%25' y='-80%25' width='260%25' height='260%25'%3E%3CfeGaussianBlur stdDeviation='2.5' result='blur'/%3E%3CfeMerge%3E%3CfeMergeNode in='blur'/%3E%3CfeMergeNode in='SourceGraphic'/%3E%3C/feMerge%3E%3C/filter%3E%3C/defs%3E%3Ctext y='58' x='10' font-size='38' opacity='0.14' fill='%2300aaff' filter='url(%23gm)'%3E🌙%3C/text%3E%3Ctext y='130' x='80' font-size='26' opacity='0.1' fill='%2300ccff' filter='url(%23gs)'%3E⭐%3C/text%3E%3C/svg%3E");
+      background-size:160px 160px;
+    }
+    body.night-theme::after {
+      content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+      background:repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,150,255,0.01) 2px, rgba(0,150,255,0.01) 4px);
+    }
+    body.night-theme .navbar { background:rgba(0,3,12,0.96); border-top-color:rgba(0,150,255,0.22); }
+    body.night-theme .nav-item.active { color:#00aaff; }
+    body.night-theme .nav-item.active::before { background:#00aaff; box-shadow:0 0 8px rgba(0,170,255,0.6); }
+    body.night-theme .hero { border-color:rgba(0,150,255,0.22); background:#000a18; }
+    body.night-theme .hero-bg {
+      background: radial-gradient(ellipse 80% 60% at 100% 0%, rgba(0,150,255,0.1) 0%, transparent 60%),
+                  radial-gradient(ellipse 50% 40% at 0% 100%, rgba(0,80,255,0.07) 0%, transparent 60%);
+    }
+    body.night-theme .ava { border-color:rgba(0,170,255,0.5); background:#00060f; color:#00aaff; }
+    body.night-theme .ava-ring { border-color:rgba(0,150,255,0.28); box-shadow:0 0 12px rgba(0,170,255,0.45); animation:ring-pulse-neon 2s ease-in-out infinite; }
+    body.night-theme .hero-badge { background:rgba(0,150,255,0.1); border-color:rgba(0,150,255,0.3); }
+    body.night-theme .hero-badge::before { background:#00aaff; box-shadow:0 0 6px rgba(0,170,255,0.6); }
+    body.night-theme .xp-track { background:rgba(0,150,255,0.12); }
+    body.night-theme .xp-bar { background:linear-gradient(90deg, #00aaff, #0066ff); }
+    body.night-theme .xp-bar::after { background:#00aaff; box-shadow:0 0 10px rgba(0,170,255,0.7); }
+    body.night-theme .xp-lvl { color:#00aaff; }
+    body.night-theme .stat { background:#000a18; border-color:rgba(0,150,255,0.14); }
+    body.night-theme .stat::before { background:rgba(0,150,255,0.14); }
+    body.night-theme .stat-num { color:#00aaff; text-shadow:0 0 12px rgba(0,170,255,0.55), 0 0 24px rgba(0,120,255,0.3); }
+    body.night-theme .stat-lbl { color:rgba(0,200,255,0.45); }
+    body.night-theme .rank-card { background:#000a18; border-color:rgba(0,150,255,0.14); }
+    body.night-theme .rank-num { color:#00aaff; text-shadow:0 0 16px rgba(0,170,255,0.6), 0 0 30px rgba(0,120,255,0.25); }
+    body.night-theme .rank-lbl { color:rgba(0,200,255,0.4); }
+    body.night-theme .btn-primary { background:#00aaff; color:#000; box-shadow:0 0 18px rgba(0,170,255,0.5); }
+    body.night-theme .btn-secondary { background:#000a18; border-color:rgba(0,150,255,0.28); color:#00aaff; }
+    body.night-theme .daily-hub { border-color:rgba(0,150,255,0.18); background:radial-gradient(circle at 100% 0%, rgba(0,150,255,0.09), transparent 48%), #00040e; }
+    body.night-theme .daily-claim { border-color:rgba(0,150,255,0.14); background:rgba(0,150,255,0.05); }
+    body.night-theme .daily-claim-button { background:#00aaff; border-color:#00aaff; color:#000; box-shadow:0 0 10px rgba(0,170,255,0.5); }
+    body.night-theme .card { background:#000a18; border-color:rgba(0,150,255,0.1); }
+    body.night-theme .card.fav { border-color:rgba(0,170,255,0.5); box-shadow:0 0 14px rgba(0,150,255,0.2); }
+    body.night-theme .card-anime { color:rgba(0,200,255,0.4); }
+    body.night-theme .rl-OP { background:#00aaff; box-shadow:0 0 8px rgba(0,170,255,0.7); }
+    body.night-theme .rl-Eternal { background:#0066ff; box-shadow:0 0 12px rgba(0,100,255,0.7); }
+    body.night-theme .rl-Suspicious { background:#5eeaff; box-shadow:0 0 14px rgba(78,232,255,0.85); }
+    body.night-theme .rl-OverLord { background:#b58cff; box-shadow:0 0 20px rgba(155,104,255,1); }
+    body.night-theme .chip { border-color:rgba(0,150,255,0.18); color:rgba(0,200,255,0.4); }
+    body.night-theme .chip.on { background:#00aaff; border-color:#00aaff; color:#000; box-shadow:0 0 10px rgba(0,170,255,0.5); }
+    body.night-theme .lb-row { background:#000a18; border-color:rgba(0,150,255,0.1); }
+    body.night-theme .lb-row.gold { border-color:rgba(0,170,255,0.38); }
+    body.night-theme .lb-score { color:#00aaff; text-shadow:0 0 10px rgba(0,170,255,0.55); }
+    body.night-theme .lb-ava { border-color:rgba(0,170,255,0.38); background:#000a18; }
+    body.night-theme .harem-search, body.night-theme .harem-sort, body.night-theme .sell-price-input {
+      background:#000a18; border-color:rgba(0,150,255,0.18); color:#fff;
+    }
+    body.night-theme .harem-search:focus, body.night-theme .harem-sort:focus, body.night-theme .sell-price-input:focus {
+      border-color:#00aaff; box-shadow:0 0 8px rgba(0,150,255,0.2);
+    }
+    body.night-theme .harem-search::placeholder { color:rgba(0,200,255,0.3); }
+    body.night-theme .spin { border-color:rgba(0,150,255,0.14); border-top-color:#00aaff; }
+    body.night-theme .spin-txt { color:rgba(0,170,255,0.55); }
+    body.night-theme .modal-sheet { background:#00040e; border-color:rgba(0,150,255,0.2); }
+    body.night-theme .modal-close { border-color:rgba(0,150,255,0.28); background:rgba(0,0,0,0.8); color:#fff; }
+    body.night-theme .modal-buy { background:#00aaff; color:#000; border-color:#00aaff; box-shadow:0 0 14px rgba(0,170,255,0.5); }
+    body.night-theme .detail-badge { background:rgba(0,150,255,0.1); border-color:rgba(0,150,255,0.25); color:rgba(100,210,255,0.9); }
+    body.night-theme .detail-row { background:rgba(0,150,255,0.04); border-color:rgba(0,150,255,0.1); }
+    body.night-theme .detail-name { color:#fff; }
+    body.night-theme .detail-value { color:rgba(200,240,255,0.92); }
+    body.night-theme .buy-btn { background:#00aaff; border-color:#00aaff; color:#000; box-shadow:0 0 8px rgba(0,170,255,0.5); }
+    body.night-theme .empty-retry { border-color:rgba(0,170,255,0.4); color:#00aaff; }
+    body.night-theme .toast { background:#000a18; border-color:rgba(0,150,255,0.28); }
+    body.night-theme .ph-title { color:#fff; }
+    body.night-theme .ph-count { color:rgba(0,200,255,0.45); }
+    body.night-theme .collection-progress { border-color:rgba(0,150,255,0.14); background:linear-gradient(135deg, rgba(0,150,255,0.07), rgba(0,150,255,0.02)); }
+    body.night-theme .collection-progress-bar { background:linear-gradient(90deg, #00aaff, #0066ff); }
+    body.night-theme .collection-progress-track { background:rgba(0,150,255,0.12); }
+    body.night-theme .market-note { color:rgba(0,200,255,0.38); }
+    body.night-theme .market-price { color:#00aaff; text-shadow:0 0 8px rgba(0,170,255,0.5); }
+    body.night-theme .action-modal-button { border-color:rgba(0,150,255,0.32); color:#00aaff; }
+    body.night-theme .action-modal-button.primary { background:#00aaff; color:#000; border-color:#00aaff; box-shadow:0 0 12px rgba(0,170,255,0.5); }
+    body.night-theme .hero-name { color:#fff; }
+    body.night-theme .daily-hub-title { color:#fff; }
+    body.night-theme .daily-streak-main { color:#fff; }
+    body.night-theme .daily-quest-name { color:#fff; }
+    body.night-theme .card-name { color:#fff; }
+
+        /* ── NOISE TEXTURE ── */
+    body::before {
+      content:''; position:fixed; inset:0; z-index:0; pointer-events:none; opacity:0.04;
+      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size:200px 200px;
+    }
+
+    /* ── SCAN LINE ── */
+    body::after {
+      content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+      background:repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.015) 2px, rgba(255,255,255,0.015) 4px);
+    }
+
+    .pages { position:fixed; inset:0 0 68px; z-index:1; overflow:hidden; }
+    .page { position:absolute; inset:0; overflow-y:auto; opacity:0; pointer-events:none; transition:opacity 0.25s; }
+    .page.active { opacity:1; pointer-events:all; }
+    .page::-webkit-scrollbar { display:none; }
+
+    /* ── NAVBAR ── */
+    .navbar {
+      position:fixed; bottom:0; left:0; right:0; z-index:100;
+      height:68px; background:rgba(0,0,0,0.95);
+      border-top:1px solid rgba(255,255,255,0.1);
+      backdrop-filter:blur(20px);
+      display:flex; align-items:center; padding:0 4px;
+      padding-bottom:env(safe-area-inset-bottom);
+    }
+    .nav-item {
+      flex:1; display:flex; flex-direction:column; align-items:center;
+      justify-content:center; gap:5px; border:none; background:none;
+      cursor:pointer; color:rgba(255,255,255,0.25); font-family:inherit;
+      font-size:9px; font-weight:600; letter-spacing:0.5px; text-transform:uppercase;
+      padding:10px 0; border-radius:14px; transition:all 0.2s; position:relative;
+    }
+    .nav-item svg { width:22px; height:22px; stroke:currentColor; fill:none; stroke-width:1.8; transition:all 0.2s; }
+    .nav-item.active { color:#fff; }
+    .nav-item.active::before {
+      content:''; position:absolute; top:0; left:20%; right:20%; height:2px;
+      background:#fff; border-radius:0 0 4px 4px;
+    }
+
+    /* ── PROFILE HERO ── */
+    .hero {
+      position:relative; margin:16px 16px 0;
+      border-radius:24px; overflow:hidden;
+      border:1px solid rgba(255,255,255,0.12);
+      background:#0a0a0a;
+    }
+    .hero-bg {
+      position:absolute; inset:0;
+      background:
+        radial-gradient(ellipse 80% 60% at 100% 0%, rgba(255,255,255,0.07) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 0% 100%, rgba(255,255,255,0.04) 0%, transparent 60%);
+    }
+    .hero-content { position:relative; padding:20px; }
+
+    .hero-top { display:flex; align-items:center; gap:14px; }
+    .ava-wrap { position:relative; flex-shrink:0; }
+    .ava {
+      width:64px; height:64px; border-radius:50%;
+      background:#fff; color:#000;
+      display:flex; align-items:center; justify-content:center;
+      font-size:26px; font-weight:800;
+      border:2px solid rgba(255,255,255,0.3);
+    }
+    .ava-ring {
+      position:absolute; inset:-4px; border-radius:50%;
+      border:1px solid rgba(255,255,255,0.15);
+      animation:ring-pulse 2s ease-in-out infinite;
+    }
+    @keyframes ring-pulse { 0%,100%{opacity:0.5;transform:scale(1)} 50%{opacity:1;transform:scale(1.03)} }
+
+    .hero-info { flex:1; min-width:0; }
+    .hero-info-top { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .hero-info-top .hero-name { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .hero-name { font-size:20px; font-weight:700; letter-spacing:-0.5px; }
+    .hero-badge {
+      display:inline-flex; align-items:center; gap:5px; margin-top:5px;
+      padding:4px 10px; border-radius:20px;
+      background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15);
+      font-size:11px; font-weight:600; color:rgba(255,255,255,0.8);
+    }
+    .hero-badge::before { content:''; width:6px; height:6px; border-radius:50%; background:#fff; display:inline-block; }
+
+    .xp-section { margin-top:18px; }
+    .xp-meta { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+    .xp-lvl { font-size:12px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:rgba(255,255,255,0.5); }
+    .xp-val { font-size:12px; color:rgba(255,255,255,0.3); }
+    .xp-track { height:6px; border-radius:99px; background:rgba(255,255,255,0.08); overflow:hidden; position:relative; }
+    .xp-bar { height:100%; border-radius:99px; background:#fff; width:0%; transition:width 0.8s cubic-bezier(0.4,0,0.2,1); position:relative; }
+    .xp-bar::after { content:''; position:absolute; right:0; top:50%; transform:translateY(-50%); width:10px; height:10px; border-radius:50%; background:#fff; box-shadow:0 0 8px rgba(255,255,255,0.8); }
+
+    /* ── STAT CARDS ── */
+    .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; padding:12px 16px 0; }
+    .stat {
+      background:#0a0a0a; border:1px solid rgba(255,255,255,0.08);
+      border-radius:16px; padding:12px 8px; text-align:center;
+      position:relative; overflow:hidden; transition:transform 0.15s;
+    }
+    .stat:active { transform:scale(0.95); }
+    .stat::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:rgba(255,255,255,0.1); }
+    .stat-num { font-size:18px; font-weight:800; letter-spacing:-0.5px; }
+    .stat-lbl { font-size:9px; color:rgba(255,255,255,0.3); text-transform:uppercase; letter-spacing:0.5px; margin-top:3px; font-weight:600; }
+
+    /* ── RANK SECTION ── */
+    .ranks { display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:8px 16px 0; }
+    .rank-card {
+      background:#0a0a0a; border:1px solid rgba(255,255,255,0.08);
+      border-radius:18px; padding:16px; text-align:center; position:relative; overflow:hidden;
+    }
+    .rank-card::after {
+      content:''; position:absolute; bottom:0; left:0; right:0; height:40px;
+      background:linear-gradient(0deg, rgba(255,255,255,0.03), transparent);
+    }
+    .rank-lbl { font-size:9px; color:rgba(255,255,255,0.3); text-transform:uppercase; letter-spacing:1px; font-weight:600; margin-bottom:8px; }
+    .rank-num { font-size:32px; font-weight:800; letter-spacing:-1px; }
+    .rank-sub { font-size:9px; color:rgba(255,255,255,0.25); margin-top:3px; }
+
+    /* ── ACTIONS ── */
+    .actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:8px 16px 20px; }
+    .btn {
+      padding:14px; border-radius:16px; border:none; cursor:pointer;
+      font-family:inherit; font-size:13px; font-weight:700; letter-spacing:0.3px;
+      transition:all 0.15s; position:relative; overflow:hidden;
+    }
+    .btn:active { transform:scale(0.96); }
+    .btn::after { content:''; position:absolute; inset:0; background:rgba(255,255,255,0.1); opacity:0; transition:opacity 0.15s; }
+    .btn:active::after { opacity:1; }
+    .btn-primary { background:#fff; color:#000; }
+    .btn-secondary { background:#0a0a0a; border:1px solid rgba(255,255,255,0.12); color:#fff; }
+
+    /* ── PAGE HEADER ── */
+    .ph { padding:18px 16px 12px; display:flex; align-items:center; justify-content:space-between; }
+    .ph-title { font-size:22px; font-weight:800; letter-spacing:-0.5px; }
+    .ph-count { font-size:12px; color:rgba(255,255,255,0.3); font-weight:500; }
+
+    /* ── CHIPS ── */
+    .chips { display:flex; gap:6px; padding:0 16px 14px; overflow-x:scroll; scrollbar-width:none; -webkit-overflow-scrolling:touch; scroll-snap-type:x mandatory; }
+    .chips::-webkit-scrollbar { display:none; }
+    .chip { scroll-snap-align:start; flex-shrink:0; }
+    .chip {
+      padding:7px 14px; border-radius:99px;
+      border:1px solid rgba(255,255,255,0.1);
+      background:transparent; color:rgba(255,255,255,0.35);
+      font-size:11px; font-weight:600; letter-spacing:0.3px;
+      cursor:pointer; white-space:nowrap; font-family:inherit; transition:all 0.15s;
+    }
+    .chip.on { background:#fff; border-color:#fff; color:#000; }
+
+    /* ── GRID ── */
+    .grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; padding:0 16px 20px; }
+
+    /* ── CARD ── */
+    .card {
+      background:#0a0a0a; border:1px solid rgba(255,255,255,0.08);
+      border-radius:20px; overflow:hidden; cursor:pointer;
+      transition:transform 0.15s, border-color 0.15s; position:relative;
+    }
+    .card:active { transform:scale(0.95); }
+    .card.fav { border-color:rgba(255,255,255,0.4); }
+
+    .card-img-wrap { position:relative; padding-top:130%; background:#050505; }
+    .card-img {
+      position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+      opacity:0; transition:opacity 0.4s; filter:none;
+    }
+    .card-img.on { opacity:1; }
+    .card-ph { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:28px; opacity:0.1; }
+
+    /* Overlay gradient */
+    .card-overlay {
+      position:absolute; inset:0;
+      background:linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.9) 100%);
+    }
+
+    /* Rarity accent line */
+    .card-line {
+      position:absolute; top:0; left:0; right:0; height:2px;
+    }
+    .rl-Common    { background:rgba(255,255,255,0.2); }
+    .rl-Rare      { background:rgba(255,255,255,0.4); }
+    .rl-Legendary { background:rgba(255,255,255,0.6); }
+    .rl-Mythical  { background:rgba(255,255,255,0.7); }
+    .rl-Sovereign { background:rgba(255,255,255,0.85); }
+    .rl-OP        { background:#fff; box-shadow:0 0 8px rgba(255,255,255,0.8); }
+    .rl-Eternal   { background:#fff; box-shadow:0 0 12px rgba(255,255,255,1); }
+    .rl-Suspicious { background:#5eeaff; box-shadow:0 0 13px rgba(78,232,255,0.9); }
+    .rl-OverLord   { background:#ffc84a; box-shadow:0 0 18px rgba(255,171,32,1); }
+
+    .fav-star { position:absolute; top:8px; right:10px; font-size:14px; z-index:2; }
+    .card-rarity {
+      position:absolute; bottom:38px; left:10px; z-index:2;
+      font-size:8px; font-weight:700; letter-spacing:1px; text-transform:uppercase;
+      color:rgba(255,255,255,0.5);
+    }
+    .card-body { padding:10px 12px 12px; }
+    .card-name { font-size:12px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .card-anime { font-size:10px; color:rgba(255,255,255,0.3); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+    /* ── LEADERBOARD ── */
+    .lb { display:flex; flex-direction:column; gap:8px; padding:0 16px 20px; }
+    .lb-row {
+      display:flex; align-items:center; gap:12px;
+      padding:14px; border-radius:18px;
+      background:#0a0a0a; border:1px solid rgba(255,255,255,0.08);
+      position:relative; overflow:hidden; transition:transform 0.15s;
+    }
+    .lb-row:active { transform:scale(0.98); }
+    .lb-row.gold { border-color:rgba(255,255,255,0.25); }
+    .lb-row.gold::before { content:''; position:absolute; inset:0; background:rgba(255,255,255,0.03); }
+    .lb-pos { font-size:20px; width:32px; text-align:center; flex-shrink:0; }
+    .lb-ava {
+      width:40px; height:40px; border-radius:50%; flex-shrink:0;
+      background:#000; color:#fff;
+      display:flex; align-items:center; justify-content:center;
+      font-size:17px; font-weight:800; border:2px solid rgba(255,255,255,0.26);
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,0.06);
+    }
+    .lb-ava-fallback { display:flex; align-items:center; justify-content:center; width:100%; height:100%; }
+    .lb-info { flex:1; }
+    .lb-name { font-size:14px; font-weight:700; }
+    .lb-sub { font-size:11px; color:rgba(255,255,255,0.3); margin-top:2px; }
+    .lb-score { font-size:22px; font-weight:800; letter-spacing:-0.5px; }
+
+    /* ── MARKET ── */
+    .market-soon {
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      height:55vh; gap:16px;
+    }
+    .market-icon {
+      width:80px; height:80px; border-radius:24px;
+      background:#0a0a0a; border:1px solid rgba(255,255,255,0.1);
+      display:flex; align-items:center; justify-content:center; font-size:36px;
+    }
+    .market-title { font-size:18px; font-weight:700; }
+    .market-sub { font-size:13px; color:rgba(255,255,255,0.3); }
+
+    /* ── UTILS ── */
+    .loading { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:80px 0; gap:14px; }
+    .spin {
+      width:36px; height:36px; border-radius:50%;
+      border:2px solid rgba(255,255,255,0.1); border-top-color:#fff;
+      animation:spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .spin-txt { font-size:12px; color:rgba(255,255,255,0.3); font-weight:500; letter-spacing:0.5px; }
+    .empty { text-align:center; padding:80px 20px; }
+    .empty-ico { font-size:48px; opacity:0.15; margin-bottom:12px; }
+    .empty-txt { font-size:13px; color:rgba(255,255,255,0.3); }
+  
+
+    /* ── LIVE MINI APP ADDITIONS ── */
+    .ava { overflow:hidden; position:relative; }
+    .ava-img { width:100%; height:100%; object-fit:cover; display:block; }
+    .ava-fallback { line-height:1; }
+    .hero-id { margin-top:4px; font-size:10px; color:rgba(255,255,255,0.35); letter-spacing:0.3px; }
+    .ranks { grid-template-columns:1fr; }
+    .card-tags {
+      position:absolute; bottom:38px; left:10px; right:10px; z-index:3;
+      display:flex; align-items:center; gap:5px; min-width:0; overflow:hidden;
+    }
+    .card-tags .card-rarity {
+      position:static; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;
+    }
+    .event-chip {
+      min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;
+      padding:3px 7px; border-radius:7px; max-width:60%;
+      background:rgba(0,0,0,0.65); border:1px solid rgba(255,255,255,0.18);
+      color:rgba(255,255,255,0.84); font-size:8px; font-weight:700; letter-spacing:0.4px;
+    }
+    .catalog-warning {
+      position:absolute; top:9px; left:9px; right:9px; z-index:3;
+      padding:3px 7px; border-radius:7px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;
+      background:rgba(105,76,18,0.78); border:1px solid rgba(255,205,95,0.42);
+      color:#ffdf91; font-size:8px; font-weight:700; letter-spacing:0.25px;
+    }
+    .market-note { padding:0 16px 14px; font-size:11px; color:rgba(255,255,255,0.33); }
+    .market-price-row { display:flex; align-items:center; justify-content:space-between; gap:7px; padding-top:10px; }
+    .market-price { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:11px; font-weight:800; }
+    .buy-btn, .modal-buy, .empty-retry {
+      border:1px solid rgba(255,255,255,0.9); border-radius:10px; background:#fff; color:#000;
+      cursor:pointer; font-family:inherit; font-size:10px; font-weight:800; padding:7px 9px;
+    }
+    .buy-btn:active, .modal-buy:active, .empty-retry:active { transform:scale(0.96); }
+    .buy-btn:disabled, .modal-buy:disabled { opacity:0.5; cursor:wait; }
+    .lb-ava { overflow:hidden; }
+    .lb-ava-img { width:100%; height:100%; display:block; object-fit:cover; }
+    .empty-retry { margin-top:14px; background:transparent; color:#fff; border-color:rgba(255,255,255,0.35); }
+
+    /* Detail panel remains available from every Harem and Market card. */
+    .modal { position:fixed; inset:0; z-index:200; display:flex; align-items:flex-end; padding:16px; background:rgba(0,0,0,0.74); }
+    .modal[hidden] { display:none; }
+    .modal-sheet {
+      position:relative; width:min(500px, 100%); max-height:88vh; overflow-y:auto; margin:0 auto;
+      padding:14px; border-radius:24px; border:1px solid rgba(255,255,255,0.16); background:#090909;
+      box-shadow:0 -12px 50px rgba(0,0,0,0.5);
+    }
+    .modal-sheet::-webkit-scrollbar { display:none; }
+    .modal-close {
+      position:absolute; top:22px; right:22px; z-index:4; width:32px; height:32px; border-radius:50%;
+      border:1px solid rgba(255,255,255,0.25); background:rgba(0,0,0,0.7); color:#fff; cursor:pointer;
+      font-size:22px; line-height:27px;
+    }
+    .detail-image-wrap { position:relative; overflow:hidden; padding-top:74%; border-radius:17px; background:#050505; }
+    .detail-placeholder { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:42px; opacity:0.12; }
+    .detail-image { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0; transition:opacity 0.25s; filter:none; }
+    .detail-image.on { opacity:1; }
+    .detail-video { background:#000; }
+    .detail-name { margin-top:14px; font-size:22px; font-weight:800; letter-spacing:-0.5px; }
+    .detail-anime { margin-top:2px; font-size:12px; color:rgba(255,255,255,0.38); }
+    .detail-badges { display:flex; flex-wrap:wrap; gap:6px; margin-top:11px; }
+    .detail-badge { padding:4px 8px; border-radius:99px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.07); color:rgba(255,255,255,0.82); font-size:10px; font-weight:700; }
+    .detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:14px; }
+    .detail-row { min-width:0; padding:10px; border-radius:12px; background:rgba(255,255,255,0.045); border:1px solid rgba(255,255,255,0.07); }
+    .detail-row.wide { grid-column:1 / -1; }
+    .detail-label { font-size:9px; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; color:rgba(255,255,255,0.35); }
+    .detail-value { margin-top:4px; overflow-wrap:anywhere; font-size:12px; font-weight:600; color:rgba(255,255,255,0.9); }
+    .modal-buy { width:100%; margin-top:14px; padding:13px; font-size:13px; }
+    .detail-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:14px; }
+    .detail-actions[hidden] { display:none; }
+    .detail-action {
+      border:1px solid rgba(255,255,255,0.72); border-radius:11px; background:transparent; color:#fff;
+      cursor:pointer; font-family:inherit; font-size:11px; font-weight:800; padding:12px 8px;
+    }
+    .detail-action:active { transform:scale(0.97); }
+    .detail-action.danger { border-color:rgba(238,92,92,0.9); background:#d74444; color:#fff; }
+    .detail-action.remove { width:100%; margin-top:9px; border-color:rgba(255,185,84,0.8); color:#ffd690; }
+    .copy-count {
+      position:absolute; top:8px; left:9px; z-index:3; min-width:23px; padding:4px 6px; border-radius:99px;
+      background:rgba(0,0,0,0.82); border:1px solid rgba(255,255,255,0.23); color:#fff;
+      font-size:9px; line-height:1; font-weight:800; text-align:center;
+    }
+    .harem-tools { display:flex; gap:8px; padding:0 16px 12px; }
+    .harem-search, .harem-sort, .sell-price-input {
+      min-width:0; border:1px solid rgba(255,255,255,0.13); border-radius:12px;
+      background:#0b0b0b; color:#fff; font:600 11px/1.2 inherit; outline:none;
+    }
+    .harem-search { flex:1; padding:11px 12px; }
+    .harem-search::placeholder { color:rgba(255,255,255,0.34); }
+    .harem-search:focus, .harem-sort:focus, .sell-price-input:focus { border-color:rgba(255,255,255,0.62); }
+    .harem-sort { width:114px; padding:0 8px; }
+    .collection-progress {
+      margin:0 16px 14px; padding:12px; border:1px solid rgba(255,255,255,0.09); border-radius:15px;
+      background:linear-gradient(135deg, rgba(255,255,255,0.075), rgba(255,255,255,0.018));
+    }
+    .collection-progress[hidden] { display:none; }
+    .collection-progress-top { display:flex; justify-content:space-between; gap:10px; font-size:10px; font-weight:700; }
+    .collection-progress-sub { margin-top:3px; font-size:10px; color:rgba(255,255,255,0.39); }
+    .collection-progress-track { height:5px; margin-top:9px; border-radius:99px; overflow:hidden; background:rgba(255,255,255,0.1); }
+    .collection-progress-bar { height:100%; border-radius:inherit; background:#fff; transition:width .28s ease; }
+    .daily-hub {
+      margin:18px 16px 0; padding:14px; border-radius:19px; border:1px solid rgba(255,255,255,0.12);
+      background:radial-gradient(circle at 100% 0%, rgba(255,255,255,0.13), transparent 48%), #080808;
+    }
+    .daily-hub-title { display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:15px; font-weight:800; }
+    .daily-hub-title span:last-child { font-size:10px; color:rgba(255,255,255,0.42); font-weight:600; }
+    .daily-claims { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px; }
+    .daily-claim { min-width:0; padding:11px; border:1px solid rgba(255,255,255,0.1); border-radius:14px; background:rgba(255,255,255,0.045); }
+    .daily-claim-label { font-size:9px; letter-spacing:.45px; text-transform:uppercase; color:rgba(255,255,255,0.42); font-weight:800; }
+    .daily-claim-status { min-height:29px; margin-top:5px; font-size:11px; font-weight:700; line-height:1.3; }
+    .daily-claim-button { width:100%; margin-top:8px; padding:8px; border:1px solid #fff; border-radius:9px; background:#fff; color:#000; font:800 10px inherit; cursor:pointer; }
+    .daily-claim-button[disabled] { opacity:.42; cursor:wait; }
+    .daily-streak { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:12px; padding:10px 0; border-top:1px solid rgba(255,255,255,0.08); }
+    .daily-streak-main { font-size:12px; font-weight:800; }
+    .daily-streak-sub { margin-top:2px; font-size:10px; color:rgba(255,255,255,0.41); }
+    .daily-quests { display:flex; flex-direction:column; gap:7px; margin-top:3px; }
+    .daily-quest { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 0; border-top:1px solid rgba(255,255,255,0.06); }
+    .daily-quest-name { min-width:0; font-size:10px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .daily-quest-meta { flex-shrink:0; font-size:9px; color:rgba(255,255,255,0.46); }
+    .daily-hub-error { padding:10px 0 2px; font-size:11px; color:rgba(255,180,180,.95); }
+    .action-modal { z-index:230; align-items:center; }
+    .action-modal .modal-sheet { max-width:390px; }
+    .action-modal-title { font-size:18px; font-weight:800; }
+    .action-modal-copy { margin-top:8px; color:rgba(255,255,255,0.54); font-size:12px; line-height:1.45; }
+    .sell-price-input { box-sizing:border-box; width:100%; margin-top:14px; padding:13px; font-size:15px; }
+    .action-modal-buttons { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:14px; }
+    .action-modal-button { border:1px solid rgba(255,255,255,0.38); border-radius:11px; background:transparent; color:#fff; padding:12px; font:800 12px inherit; cursor:pointer; }
+    .action-modal-button.primary { background:#fff; color:#000; border-color:#fff; }
+    .action-modal-button.burn { background:#d74444; border-color:#e95e5e; color:#fff; }
+    .action-modal-button:disabled { opacity:.45; cursor:wait; }
+    .toast {
+      position:fixed; left:50%; bottom:82px; z-index:300; width:min(360px, calc(100% - 32px));
+      transform:translate(-50%, 18px); opacity:0; pointer-events:none; transition:opacity 0.2s, transform 0.2s;
+      padding:12px 14px; border:1px solid rgba(255,255,255,0.2); border-radius:14px; background:#141414; color:#fff;
+      box-shadow:0 12px 35px rgba(0,0,0,0.45); font-size:12px; font-weight:600; text-align:center;
+    }
+    .toast.show { transform:translate(-50%, 0); opacity:1; }
+    .toast.error { border-color:rgba(238,105,105,0.65); color:#ffb4b4; }
+
+    /* ── NEON TEXT GLOW (both themes) ── */
+    body.neko-theme .ph-title,
+    body.neko-theme .hero-name,
+    body.neko-theme .daily-hub-title > span:first-child,
+    body.neko-theme .detail-name,
+    body.neko-theme .action-modal-title {
+      color:var(--neon);
+      text-shadow:0 0 18px var(--neon-glow), 0 0 36px rgba(255,136,0,0.2);
+    }
+    body.neko-theme .hero-id { color:rgba(255,179,0,0.4); }
+    body.neko-theme .detail-anime { color:rgba(255,179,0,0.5); }
+    body.neko-theme .detail-label { color:rgba(255,179,0,0.4); }
+    body.neko-theme .detail-value { color:rgba(255,230,180,0.92); }
+    body.neko-theme .daily-hub-title span:last-child { color:rgba(255,179,0,0.4); }
+    body.neko-theme .daily-streak-main { color:var(--neon); }
+    body.neko-theme .daily-streak-sub { color:rgba(255,179,0,0.38); }
+    body.neko-theme .daily-quest-name { color:#fff; }
+    body.neko-theme .daily-quest-meta { color:rgba(255,179,0,0.4); }
+    body.neko-theme .lb-name { color:#fff; }
+    body.neko-theme .lb-sub { color:rgba(255,179,0,0.38); }
+    body.neko-theme .xp-val { color:rgba(255,179,0,0.38); }
+    body.neko-theme .hero-id { color:rgba(255,179,0,0.38); }
+    body.neko-theme .rank-sub { color:rgba(255,179,0,0.3); }
+
+    body.night-theme .ph-title,
+    body.night-theme .hero-name,
+    body.night-theme .daily-hub-title > span:first-child,
+    body.night-theme .detail-name,
+    body.night-theme .action-modal-title {
+      color:#00aaff;
+      text-shadow:0 0 18px rgba(0,170,255,0.65), 0 0 36px rgba(0,120,255,0.25);
+    }
+    body.night-theme .hero-id { color:rgba(0,200,255,0.38); }
+    body.night-theme .detail-anime { color:rgba(0,200,255,0.48); }
+    body.night-theme .detail-label { color:rgba(0,200,255,0.38); }
+    body.night-theme .daily-hub-title span:last-child { color:rgba(0,200,255,0.38); }
+    body.night-theme .daily-streak-main { color:#00aaff; }
+    body.night-theme .daily-streak-sub { color:rgba(0,200,255,0.36); }
+    body.night-theme .daily-quest-meta { color:rgba(0,200,255,0.38); }
+    body.night-theme .lb-name { color:#fff; }
+    body.night-theme .lb-sub { color:rgba(0,200,255,0.36); }
+    body.night-theme .xp-val { color:rgba(0,200,255,0.36); }
+    body.night-theme .rank-sub { color:rgba(0,200,255,0.3); }
+    body.night-theme .action-modal-copy { color:rgba(0,200,255,0.5); }
+    body.night-theme .hero-badge { color:rgba(0,220,255,0.85); }
+
+    /* Modal overlay tint per theme */
+    body.neko-theme  .modal { background:rgba(10,3,0,0.82); }
+    body.night-theme .modal { background:rgba(0,5,20,0.82); }
+
+  
+    /* ── LOVE / RELATIONSHIP PANEL ── */
+    .rl-Love { background:linear-gradient(90deg,#ff5d9e,#ff9dc5); box-shadow:0 0 16px rgba(255,91,157,.88); }
+    .love-shell { padding:0 16px 24px; }
+    .love-glass {
+      position:relative; overflow:hidden; margin-bottom:13px; padding:15px;
+      border:1px solid rgba(255,135,189,.32); border-radius:21px;
+      background:linear-gradient(135deg,rgba(255,95,162,.18),rgba(122,77,255,.11) 52%,rgba(255,255,255,.05));
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.14), 0 16px 40px rgba(0,0,0,.2);
+      backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+    }
+    .love-glass::before { content:''; position:absolute; width:170px; height:170px; right:-70px; top:-90px; border-radius:50%; background:rgba(255,163,208,.18); filter:blur(18px); pointer-events:none; }
+    .love-eyebrow { position:relative; color:#ffc1da; font-size:9px; font-weight:800; letter-spacing:1px; text-transform:uppercase; }
+    .love-title { position:relative; margin-top:4px; font-size:22px; font-weight:800; letter-spacing:-.6px; }
+    .love-copy { position:relative; margin-top:6px; max-width:400px; color:rgba(255,255,255,.62); font-size:11px; line-height:1.45; }
+    .love-active { display:grid; grid-template-columns:96px minmax(0,1fr); gap:12px; align-items:center; }
+    .love-art { position:relative; width:96px; height:128px; overflow:hidden; border-radius:15px; background:#09070b; border:1px solid rgba(255,255,255,.18); }
+    .love-art .card-img { opacity:0; }
+    .love-art .card-img.on { opacity:1; }
+    .love-name { font-size:18px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .love-sub { margin-top:2px; color:rgba(255,255,255,.58); font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .love-level-line { display:flex; justify-content:space-between; gap:8px; margin-top:12px; color:#ffd0e2; font-size:10px; font-weight:800; }
+    .love-progress { height:7px; margin-top:7px; overflow:hidden; border-radius:99px; background:rgba(0,0,0,.3); }
+    .love-progress > span { display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg,#ff5e9f,#ffcfdf); box-shadow:0 0 13px rgba(255,100,166,.7); transition:width .3s ease; }
+    .love-action-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-top:13px; }
+    .love-action { min-height:45px; border:1px solid rgba(255,191,218,.35); border-radius:13px; background:rgba(255,255,255,.08); color:#fff; cursor:pointer; font:800 11px inherit; }
+    .love-action.primary { border-color:#ffc1db; background:linear-gradient(135deg,#ff5d9e,#d35fbd); color:#fff; box-shadow:0 6px 16px rgba(238,69,144,.24); }
+    .love-action.romance { border-color:rgba(197,168,255,.56); }
+    .love-action.sell { color:#ffd3a5; border-color:rgba(255,192,123,.45); }
+    .love-action:active { transform:scale(.97); }
+    .love-action:disabled { opacity:.45; cursor:wait; }
+    .love-date-panel { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px; padding-top:11px; border-top:1px solid rgba(255,255,255,.13); }
+    .love-date-choice { min-height:58px; padding:8px; border:1px solid rgba(255,194,221,.33); border-radius:13px; background:rgba(255,255,255,.08); color:#fff; cursor:pointer; text-align:left; font:800 11px inherit; }
+    .love-date-choice small { display:block; margin-top:3px; color:rgba(255,255,255,.58); font-size:9px; font-weight:600; }
+    .love-date-choice:disabled { opacity:.45; cursor:wait; }
+    .love-section-title { margin:18px 2px 10px; font-size:13px; color:rgba(255,255,255,.72); font-weight:800; }
+    .love-owned-list { display:flex; flex-direction:column; gap:8px; }
+    .love-owned-row { display:flex; align-items:center; justify-content:space-between; gap:9px; padding:11px 12px; border:1px solid rgba(255,255,255,.1); border-radius:14px; background:rgba(255,255,255,.045); }
+    .love-owned-main { min-width:0; }
+    .love-owned-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px; font-weight:800; }
+    .love-owned-meta { margin-top:3px; color:rgba(255,255,255,.45); font-size:10px; }
+    .love-select { flex-shrink:0; padding:8px 10px; border:1px solid rgba(255,190,220,.46); border-radius:10px; background:transparent; color:#ffd2e4; cursor:pointer; font:800 10px inherit; }
+    .love-select.selected { border-color:#ff82b5; background:rgba(255,92,157,.2); color:#fff; }
+    .love-catalog { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+    .love-catalog-card { overflow:hidden; border:1px solid rgba(255,255,255,.1); border-radius:18px; background:#0b0a0d; }
+    .love-catalog-art { position:relative; padding-top:118%; background:#060506; }
+    .love-catalog-art .card-img { opacity:0; }
+    .love-catalog-art .card-img.on { opacity:1; }
+    .love-catalog-body { padding:10px; }
+    .love-catalog-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px; font-weight:800; }
+    .love-catalog-anime { overflow:hidden; margin-top:2px; color:rgba(255,255,255,.42); font-size:10px; text-overflow:ellipsis; white-space:nowrap; }
+    .love-buy { width:100%; margin-top:9px; padding:9px; border:1px solid #ffc1db; border-radius:10px; background:#ffd0e3; color:#260616; cursor:pointer; font:800 10px inherit; }
+    .love-buy:disabled { opacity:.42; cursor:not-allowed; }
+    body.neko-theme .love-glass { border-color:rgba(255,136,0,.42); background:linear-gradient(135deg,rgba(255,136,0,.18),rgba(255,199,83,.07)); }
+    body.neko-theme .love-eyebrow, body.neko-theme .love-level-line { color:#ffbf69; }
+    body.neko-theme .love-progress > span { background:linear-gradient(90deg,#ff8800,#ffe18a); }
+    body.night-theme .love-glass { border-color:rgba(0,177,255,.42); background:linear-gradient(135deg,rgba(0,146,255,.16),rgba(102,88,255,.13)); }
+    body.night-theme .love-eyebrow, body.night-theme .love-level-line { color:#76d8ff; }
+
+  
+
+    /* ─────────────────────────────────────────────────────────────────────
+       v36 — VAULT INTERFACE
+       A complete visual system layered over the existing server-authoritative
+       Mini App. All data attributes, IDs, routes, and interaction hooks below
+       remain unchanged; this block only changes the visual language.
+       ───────────────────────────────────────────────────────────────────── */
+    :root {
+      color-scheme:dark;
+      --bg:#080b16;
+      --bg-deep:#040611;
+      --surface:rgba(18,24,45,.72);
+      --surface-solid:#12182c;
+      --surface-raised:#19213a;
+      --line:rgba(190,202,255,.14);
+      --line-strong:rgba(199,208,255,.25);
+      --text:#f7f8ff;
+      --muted:#9ba6c2;
+      --faint:#68728f;
+      --accent:#a78bfa;
+      --accent-2:#4fd1ff;
+      --accent-rgb:167,139,250;
+      --accent2-rgb:79,209,255;
+      --accent-ink:#101022;
+      --danger:#fb7185;
+      --success:#5ee6b8;
+      --shadow:0 18px 55px rgba(0,0,0,.36);
+      --radius-xl:28px;
+      --radius-lg:21px;
+      --radius-md:16px;
+    }
+
+    body.void-theme {
+      --bg:#080b16;
+      --bg-deep:#040611;
+      --surface:rgba(18,24,45,.72);
+      --surface-solid:#12182c;
+      --surface-raised:#19213a;
+      --line:rgba(190,202,255,.14);
+      --line-strong:rgba(199,208,255,.25);
+      --text:#f7f8ff;
+      --muted:#9ba6c2;
+      --faint:#68728f;
+      --accent:#a78bfa;
+      --accent-2:#4fd1ff;
+      --accent-rgb:167,139,250;
+      --accent2-rgb:79,209,255;
+      --accent-ink:#101022;
+    }
+    body.aurora-theme {
+      --bg:#07151b;
+      --bg-deep:#020c11;
+      --surface:rgba(10,37,43,.72);
+      --surface-solid:#0d2b32;
+      --surface-raised:#123940;
+      --line:rgba(126,247,227,.16);
+      --line-strong:rgba(153,255,238,.30);
+      --text:#effffb;
+      --muted:#9bc7c1;
+      --faint:#69948e;
+      --accent:#54e6c2;
+      --accent-2:#75b8ff;
+      --accent-rgb:84,230,194;
+      --accent2-rgb:117,184,255;
+      --accent-ink:#06231f;
+    }
+    body.ember-theme {
+      --bg:#171008;
+      --bg-deep:#0b0602;
+      --surface:rgba(48,30,17,.74);
+      --surface-solid:#332014;
+      --surface-raised:#49301d;
+      --line:rgba(255,196,123,.16);
+      --line-strong:rgba(255,207,147,.31);
+      --text:#fff8ef;
+      --muted:#d0af90;
+      --faint:#97765a;
+      --accent:#ffad5e;
+      --accent-2:#fb7185;
+      --accent-rgb:255,173,94;
+      --accent2-rgb:251,113,133;
+      --accent-ink:#2b1508;
+    }
+
+    html, body { background:var(--bg-deep); }
+    body {
+      font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+        "Segoe UI", sans-serif;
+      background:
+        radial-gradient(900px 540px at 105% -12%, rgba(var(--accent-rgb),.21), transparent 65%),
+        radial-gradient(780px 510px at -18% 105%, rgba(var(--accent2-rgb),.15), transparent 68%),
+        linear-gradient(160deg, var(--bg) 0%, var(--bg-deep) 100%);
+      color:var(--text);
+      letter-spacing:.01em;
+    }
+    body::before {
+      content:""; position:fixed; inset:0; z-index:0; pointer-events:none; opacity:1;
+      background-image:
+        linear-gradient(rgba(255,255,255,.026) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.026) 1px, transparent 1px),
+        radial-gradient(circle at 74% 19%, rgba(var(--accent2-rgb),.16) 0 1px, transparent 1.8px),
+        radial-gradient(circle at 23% 71%, rgba(var(--accent-rgb),.19) 0 1px, transparent 1.8px);
+      background-size:34px 34px,34px 34px,137px 137px,191px 191px;
+      mask-image:linear-gradient(to bottom,rgba(0,0,0,.8),transparent 93%);
+    }
+    body::after {
+      content:""; position:fixed; inset:auto -30vw -35vh auto; z-index:0; pointer-events:none;
+      width:74vw; height:74vw; max-width:580px; max-height:580px; border-radius:50%;
+      background:radial-gradient(circle, rgba(var(--accent-rgb),.12), transparent 66%);
+      filter:blur(12px); opacity:.8;
+    }
+    *, *::before, *::after { box-sizing:border-box; }
+    button, input, select { font:inherit; }
+    button:focus-visible, input:focus-visible, select:focus-visible {
+      outline:2px solid var(--accent-2); outline-offset:3px;
+    }
+
+    /* Ambient layer and application frame */
+    .ambient { position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; }
+    .ambient span { position:absolute; display:block; border-radius:999px; filter:blur(.2px); }
+    .ambient .orb-a {
+      width:230px; height:230px; top:8%; left:-135px;
+      background:radial-gradient(circle, rgba(var(--accent-rgb),.19), transparent 68%);
+    }
+    .ambient .orb-b {
+      width:280px; height:280px; top:43%; right:-170px;
+      background:radial-gradient(circle, rgba(var(--accent2-rgb),.15), transparent 70%);
+    }
+    .appbar {
+      position:fixed; top:0; left:0; right:0; z-index:160;
+      height:calc(66px + env(safe-area-inset-top));
+      display:flex; align-items:flex-end; justify-content:space-between; gap:14px;
+      padding:calc(9px + env(safe-area-inset-top)) 18px 10px;
+      background:linear-gradient(to bottom, rgba(5,7,16,.82), rgba(5,7,16,.08));
+      backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+    }
+    .brand {
+      appearance:none; display:flex; min-width:0; align-items:center; gap:10px;
+      border:0; padding:0; color:var(--text); background:transparent; cursor:pointer; text-align:left;
+    }
+    .brand-orb {
+      position:relative; display:grid; place-items:center; width:35px; height:35px; flex:0 0 35px;
+      overflow:hidden; border:1px solid rgba(var(--accent-rgb),.55); border-radius:12px;
+      background:linear-gradient(145deg, rgba(var(--accent-rgb),.34), rgba(var(--accent2-rgb),.14));
+      color:#fff; box-shadow:0 7px 22px rgba(var(--accent-rgb),.20), inset 0 1px 0 rgba(255,255,255,.25);
+      font-size:15px;
+    }
+    .brand-orb::before { content:""; position:absolute; inset:6px; border:1px solid rgba(255,255,255,.3); border-radius:8px; transform:rotate(45deg); }
+    .brand-copy { display:flex; min-width:0; flex-direction:column; gap:1px; }
+    .brand-copy small { color:var(--muted); font-size:8px; font-weight:800; letter-spacing:.16em; line-height:1; }
+    .brand-copy strong { overflow:hidden; color:var(--text); font-size:14px; font-weight:800; letter-spacing:-.03em; text-overflow:ellipsis; white-space:nowrap; }
+
+    #theme-menu-wrap { position:relative; display:block; flex:0 0 auto; }
+    #theme-dots-btn {
+      display:grid; width:36px; height:36px; place-items:center; position:relative;
+      overflow:hidden; border:1px solid var(--line-strong); border-radius:13px;
+      background:rgba(255,255,255,.055); color:var(--text); cursor:pointer;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.08);
+    }
+    #theme-dots-btn::before { content:"✦"; position:absolute; color:var(--accent); font-size:16px; line-height:1; }
+    #theme-dots-btn span { display:none; }
+    #theme-dots-btn:active { transform:scale(.94); }
+    #theme-dropdown {
+      position:absolute; top:45px; right:0; min-width:190px; overflow:hidden;
+      padding:6px; border:1px solid var(--line-strong); border-radius:18px;
+      background:rgba(12,16,31,.93); box-shadow:var(--shadow), 0 0 0 1px rgba(255,255,255,.025) inset;
+      backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px);
+      opacity:0; transform:translateY(-7px) scale(.96); transform-origin:top right;
+      pointer-events:none; transition:opacity .18s ease, transform .18s ease;
+    }
+    .aurora-theme #theme-dropdown { background:rgba(5,31,36,.94); }
+    .ember-theme #theme-dropdown { background:rgba(31,18,9,.94); }
+    #theme-dropdown.open { opacity:1; transform:translateY(0) scale(1); pointer-events:auto; }
+    .theme-opt {
+      display:flex; align-items:center; gap:10px; width:100%; padding:10px;
+      border:0; border-radius:12px; background:transparent; color:var(--muted); cursor:pointer; text-align:left;
+      font-size:12px; font-weight:750; transition:color .16s, background .16s;
+    }
+    .theme-opt:hover, .theme-opt.tactive { color:var(--text); background:rgba(255,255,255,.08); }
+    .theme-opt.tactive::after { content:"ACTIVE"; margin-left:auto; color:var(--accent); font-size:8px; font-weight:900; letter-spacing:.11em; }
+    .theme-opt .tdot { width:11px; height:11px; flex:0 0 11px; border:2px solid rgba(255,255,255,.23); border-radius:50%; }
+    .tdot-void { background:linear-gradient(135deg,#a78bfa,#4fd1ff); }
+    .tdot-aurora { background:linear-gradient(135deg,#54e6c2,#75b8ff); }
+    .tdot-ember { background:linear-gradient(135deg,#ffad5e,#fb7185); }
+
+    .pages {
+      position:fixed; inset:calc(66px + env(safe-area-inset-top)) 0 calc(84px + env(safe-area-inset-bottom));
+      z-index:1; overflow:hidden;
+    }
+    .page {
+      position:absolute; inset:0; overflow-y:auto; overscroll-behavior:contain;
+      opacity:0; pointer-events:none; transform:translateY(10px) scale(.988);
+      transition:opacity .24s ease, transform .24s ease;
+      scrollbar-width:none;
+    }
+    .page::-webkit-scrollbar { display:none; }
+    .page.active { opacity:1; pointer-events:auto; transform:translateY(0) scale(1); }
+    .page.active > * { animation:vault-rise .38s cubic-bezier(.2,.8,.2,1) both; }
+    .page.active > *:nth-child(2) { animation-delay:.035s; }
+    .page.active > *:nth-child(3) { animation-delay:.07s; }
+    @keyframes vault-rise { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+
+    /* Profile — a compact command deck rather than the old card stack */
+    .hero {
+      position:relative; margin:5px 16px 0; overflow:hidden; border:1px solid var(--line-strong);
+      border-radius:var(--radius-xl); background:
+        linear-gradient(125deg, rgba(var(--accent-rgb),.19), transparent 42%),
+        linear-gradient(320deg, rgba(var(--accent2-rgb),.12), transparent 54%),
+        var(--surface);
+      box-shadow:var(--shadow), inset 0 1px 0 rgba(255,255,255,.09);
+    }
+    .hero::before {
+      content:""; position:absolute; inset:0; pointer-events:none;
+      background:linear-gradient(105deg, transparent 0 45%, rgba(255,255,255,.05) 45.3%, transparent 45.8%),
+        radial-gradient(circle at 92% 14%, rgba(var(--accent2-rgb),.35) 0 2px, transparent 2.7px);
+      background-size:auto, 24px 24px;
+      opacity:.72;
+    }
+    .hero::after {
+      content:""; position:absolute; right:-48px; bottom:-86px; width:210px; height:210px; border:1px solid rgba(var(--accent-rgb),.19); border-radius:50%; box-shadow:0 0 0 28px rgba(var(--accent-rgb),.035), 0 0 0 57px rgba(var(--accent-rgb),.025); pointer-events:none;
+    }
+    .hero-bg { display:none; }
+    .hero-content { position:relative; z-index:1; padding:16px; }
+    .hero-kicker { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; color:var(--muted); font-size:9px; font-weight:900; letter-spacing:.16em; }
+    .hero-kicker > span:last-child { display:inline-flex; align-items:center; gap:5px; color:var(--success); font-size:8px; }
+    .hero-kicker > span:last-child::before { content:""; width:6px; height:6px; border-radius:99px; background:var(--success); box-shadow:0 0 10px rgba(94,230,184,.9); }
+    .hero-top { display:flex; align-items:center; gap:13px; }
+    .ava-wrap { position:relative; flex:0 0 auto; }
+    .ava {
+      display:flex; width:66px; height:66px; align-items:center; justify-content:center; overflow:hidden;
+      border:1px solid rgba(var(--accent-rgb),.68); border-radius:22px;
+      background:linear-gradient(145deg, rgba(var(--accent-rgb),.56), rgba(var(--accent2-rgb),.24));
+      color:#fff; font-size:25px; font-weight:850; box-shadow:0 10px 24px rgba(var(--accent-rgb),.22);
+    }
+    .ava-img { width:100%; height:100%; object-fit:cover; }
+    .ava-ring { inset:-5px; border:1px solid rgba(var(--accent2-rgb),.36); border-radius:25px; animation:orbit-pulse 2.7s ease-in-out infinite; }
+    @keyframes orbit-pulse { 50% { opacity:.42; transform:scale(1.065); } }
+    .hero-info { min-width:0; flex:1; }
+    .hero-info-top { display:block; }
+    .hero-name { overflow:hidden; color:var(--text); font-size:23px; font-weight:850; letter-spacing:-.055em; text-overflow:ellipsis; white-space:nowrap; }
+    .hero-id { margin-top:4px; color:var(--muted); font-size:10px; font-weight:650; letter-spacing:.02em; }
+    .hero-badge {
+      display:inline-flex; align-items:center; max-width:100%; gap:6px; margin-top:8px; overflow:hidden;
+      padding:5px 9px; border:1px solid rgba(var(--accent2-rgb),.25); border-radius:999px;
+      background:rgba(var(--accent2-rgb),.10); color:var(--text); font-size:9px; font-weight:800; text-overflow:ellipsis; white-space:nowrap;
+    }
+    .hero-badge::before { width:5px; height:5px; flex:0 0 5px; background:var(--accent-2); box-shadow:0 0 8px var(--accent-2); }
+    .xp-section { margin-top:17px; padding-top:13px; border-top:1px solid rgba(255,255,255,.085); }
+    .xp-meta { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+    .xp-lvl { color:var(--text); font-size:10px; font-weight:850; letter-spacing:.1em; }
+    .xp-val { color:var(--muted); font-size:10px; font-weight:700; }
+    .xp-track { height:7px; overflow:visible; border-radius:999px; background:rgba(255,255,255,.09); }
+    .xp-bar { border-radius:inherit; background:linear-gradient(90deg,var(--accent),var(--accent-2)); box-shadow:0 0 18px rgba(var(--accent-rgb),.42); }
+    .xp-bar::after { width:9px; height:9px; background:var(--text); box-shadow:0 0 0 3px rgba(var(--accent2-rgb),.18), 0 0 13px var(--accent-2); }
+
+    .stats { display:grid; grid-template-columns:repeat(2,1fr); gap:9px; padding:11px 16px 0; }
+    .stat {
+      min-height:77px; padding:13px 12px; overflow:hidden; border:1px solid var(--line); border-radius:var(--radius-md);
+      background:rgba(20,27,49,.58); text-align:left; box-shadow:inset 0 1px 0 rgba(255,255,255,.045);
+    }
+    .stat::before { top:auto; bottom:0; width:42%; height:2px; background:linear-gradient(90deg,var(--accent),transparent); }
+    .stat:nth-child(even)::before { background:linear-gradient(90deg,var(--accent-2),transparent); }
+    .stat:active { transform:translateY(1px) scale(.985); }
+    .stat-num { overflow:hidden; color:var(--text); font-size:22px; font-weight:850; letter-spacing:-.06em; text-overflow:ellipsis; white-space:nowrap; }
+    .stat-lbl { margin-top:5px; color:var(--muted); font-size:9px; font-weight:800; letter-spacing:.11em; }
+    .ranks { display:block; padding:9px 16px 0; }
+    .rank-card {
+      display:grid; grid-template-columns:1fr auto; align-items:center; min-height:82px; padding:15px 16px; overflow:hidden;
+      border:1px solid rgba(var(--accent-rgb),.23); border-radius:var(--radius-lg);
+      background:linear-gradient(110deg, rgba(var(--accent-rgb),.14), rgba(var(--accent2-rgb),.045)), var(--surface);
+      text-align:left; box-shadow:inset 0 1px 0 rgba(255,255,255,.065);
+    }
+    .rank-card::after { width:120px; height:120px; right:-36px; bottom:-66px; left:auto; border:1px solid rgba(var(--accent2-rgb),.22); border-radius:50%; background:transparent; }
+    .rank-lbl { grid-column:1; margin:0; color:var(--muted); font-size:9px; font-weight:850; letter-spacing:.13em; }
+    .rank-num { grid-column:2; grid-row:1 / span 2; position:relative; z-index:1; color:var(--accent); font-size:36px; font-weight:900; letter-spacing:-.08em; text-shadow:0 0 22px rgba(var(--accent-rgb),.32); }
+    .rank-sub { grid-column:1; margin-top:4px; color:var(--faint); font-size:10px; }
+    .actions { display:grid; grid-template-columns:1.2fr .8fr; gap:9px; padding:11px 16px 18px; }
+    .btn {
+      min-height:49px; padding:12px; border:1px solid var(--line-strong); border-radius:15px;
+      background:rgba(255,255,255,.045); color:var(--text); font-size:12px; font-weight:850; letter-spacing:.01em;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.07); transition:transform .16s, filter .16s, background .16s;
+    }
+    .btn::after { display:none; }
+    .btn-primary { border-color:transparent; background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:var(--accent-ink); box-shadow:0 10px 22px rgba(var(--accent-rgb),.24); }
+    .btn:active { transform:translateY(1px) scale(.985); }
+
+    /* Shared page header, tools and collection controls */
+    .ph { display:flex; align-items:flex-end; justify-content:space-between; gap:10px; padding:13px 18px 14px; }
+    .ph > div:first-child { min-width:0; }
+    .ph-kicker { margin-bottom:4px; color:var(--accent); font-size:9px; font-weight:900; letter-spacing:.15em; }
+    .ph-title { color:var(--text); font-size:27px; font-weight:880; letter-spacing:-.065em; }
+    .ph-count { flex:0 1 auto; max-width:44%; padding:6px 9px; overflow:hidden; border:1px solid var(--line); border-radius:999px; background:rgba(255,255,255,.04); color:var(--muted); font-size:10px; font-weight:750; text-align:right; text-overflow:ellipsis; white-space:nowrap; }
+    .harem-tools { display:grid; grid-template-columns:minmax(0,1fr) 105px; gap:8px; padding:0 16px 12px; }
+    .harem-search, .harem-sort, .sell-price-input {
+      min-height:44px; border:1px solid var(--line); border-radius:14px; background:rgba(14,19,36,.68); color:var(--text); box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+    }
+    .harem-search { padding:0 13px; font-size:12px; font-weight:650; }
+    .harem-search::placeholder { color:var(--faint); }
+    .harem-search:focus, .harem-sort:focus, .sell-price-input:focus { border-color:rgba(var(--accent-rgb),.7); box-shadow:0 0 0 3px rgba(var(--accent-rgb),.14); }
+    .harem-sort { width:auto; padding:0 8px; color:var(--muted); font-size:11px; font-weight:750; }
+    .collection-progress { margin:0 16px 13px; padding:13px; border:1px solid var(--line); border-radius:16px; background:linear-gradient(115deg,rgba(var(--accent-rgb),.10),rgba(var(--accent2-rgb),.035)); }
+    .collection-progress-top { color:var(--text); font-size:11px; font-weight:800; }
+    .collection-progress-top span:last-child { color:var(--accent); }
+    .collection-progress-sub { color:var(--muted); font-size:10px; }
+    .collection-progress-track { height:6px; background:rgba(255,255,255,.09); }
+    .collection-progress-bar { background:linear-gradient(90deg,var(--accent),var(--accent-2)); box-shadow:0 0 12px rgba(var(--accent-rgb),.35); }
+    .chips { gap:7px; padding:0 16px 15px; scroll-padding-left:16px; }
+    .chip { padding:8px 12px; border:1px solid var(--line); border-radius:12px; background:rgba(255,255,255,.035); color:var(--muted); font-size:10px; font-weight:800; letter-spacing:.015em; }
+    .chip.on { border-color:rgba(var(--accent-rgb),.48); background:rgba(var(--accent-rgb),.18); color:var(--text); box-shadow:inset 0 1px 0 rgba(255,255,255,.10); }
+
+    /* Collection and market cards */
+    .grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; padding:0 16px 24px; }
+    .card {
+      overflow:hidden; border:1px solid var(--line); border-radius:19px; background:var(--surface-solid);
+      box-shadow:0 10px 28px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.05);
+      transition:transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+    }
+    .card.fav { border-color:rgba(var(--accent-rgb),.58); box-shadow:0 12px 32px rgba(var(--accent-rgb),.15), inset 0 1px 0 rgba(255,255,255,.11); }
+    .card:active { transform:translateY(2px) scale(.982); }
+    .card-img-wrap { padding-top:135%; background:linear-gradient(145deg,rgba(var(--accent-rgb),.13),rgba(var(--accent2-rgb),.05)),#080b17; }
+    .card-img { transition:opacity .35s ease, transform .35s ease; }
+    .card:hover .card-img { transform:scale(1.035); }
+    .card-overlay { background:linear-gradient(180deg, transparent 27%, rgba(4,6,15,.15) 47%, rgba(4,6,15,.95) 100%); }
+    .card-line { height:3px; }
+    .rl-Common { background:#94a3b8; }
+    .rl-Rare { background:#60a5fa; }
+    .rl-Legendary { background:#fbbf24; }
+    .rl-Mythical { background:#d8b4fe; }
+    .rl-Sovereign { background:#f9a8d4; }
+    .rl-OP { background:var(--accent); box-shadow:0 0 12px rgba(var(--accent-rgb),.78); }
+    .rl-Eternal { background:linear-gradient(90deg,var(--accent),var(--accent-2)); box-shadow:0 0 14px rgba(var(--accent2-rgb),.6); }
+    .rl-Suspicious { background:#67e8f9; box-shadow:0 0 13px rgba(103,232,249,.65); }
+    .rl-OverLord { background:#fcd34d; box-shadow:0 0 16px rgba(252,211,77,.72); }
+    .rl-Love { background:linear-gradient(90deg,#fb7185,#f9a8d4); box-shadow:0 0 15px rgba(251,113,133,.62); }
+    .card-tags { bottom:39px; left:9px; right:9px; gap:4px; }
+    .card-tags .card-rarity, .event-chip { padding:4px 6px; border:1px solid rgba(255,255,255,.13); border-radius:8px; background:rgba(5,7,16,.65); color:#eef2ff; font-size:8px; font-weight:800; letter-spacing:.04em; backdrop-filter:blur(8px); }
+    .copy-count { top:9px; left:9px; border-color:rgba(255,255,255,.17); background:rgba(5,7,16,.72); color:var(--text); backdrop-filter:blur(8px); }
+    .catalog-warning { top:9px; left:9px; right:9px; border-color:rgba(251,191,36,.42); border-radius:8px; background:rgba(89,55,10,.78); color:#fee5ab; }
+    .fav-star { top:9px; right:10px; filter:drop-shadow(0 3px 6px rgba(0,0,0,.5)); }
+    .card-body { padding:11px 11px 12px; }
+    .card-name { color:var(--text); font-size:12px; font-weight:800; letter-spacing:-.02em; }
+    .card-anime { color:var(--muted); font-size:10px; font-weight:600; }
+    .market-note { margin:0 16px 12px; padding:10px 12px; border-left:2px solid var(--accent); border-radius:0 12px 12px 0; background:rgba(var(--accent-rgb),.07); color:var(--muted); font-size:10px; line-height:1.48; }
+    .market-price-row { gap:6px; padding-top:10px; }
+    .market-price { color:var(--accent); font-size:10px; font-weight:850; }
+    .buy-btn, .modal-buy, .empty-retry {
+      border:1px solid rgba(var(--accent-rgb),.5); border-radius:10px; background:rgba(var(--accent-rgb),.14); color:var(--text); font-size:10px; font-weight:850;
+    }
+    .buy-btn { padding:7px 8px; }
+    .buy-btn:not(:disabled):active, .modal-buy:not(:disabled):active, .empty-retry:active { transform:scale(.97); }
+
+    /* Daily hub, leaderboards, empty states */
+    .daily-hub {
+      margin:10px 16px 0; padding:15px; overflow:hidden; border:1px solid var(--line-strong); border-radius:var(--radius-lg);
+      background:linear-gradient(135deg,rgba(var(--accent2-rgb),.12),transparent 49%),var(--surface);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.07);
+    }
+    .daily-hub-title { display:flex; align-items:center; justify-content:space-between; color:var(--text); font-size:15px; font-weight:850; }
+    .daily-hub-title .hub-kicker { display:block; margin-bottom:3px; color:var(--accent); font-size:8px; font-weight:900; letter-spacing:.14em; }
+    .daily-hub-title span.hub-sigil { color:var(--accent-2); font-size:22px; text-shadow:0 0 18px rgba(var(--accent2-rgb),.55); }
+    .daily-claims { gap:8px; }
+    .daily-claim { padding:11px; border-color:var(--line); border-radius:14px; background:rgba(255,255,255,.035); }
+    .daily-claim-label { color:var(--muted); font-size:8px; }
+    .daily-claim-status { color:var(--text); font-size:11px; }
+    .daily-claim-button { border-color:transparent; border-radius:10px; background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:var(--accent-ink); font-size:10px; }
+    .daily-streak { border-top-color:var(--line); }
+    .daily-streak-main, .daily-quest-name { color:var(--text); }
+    .daily-streak-sub, .daily-quest-meta { color:var(--muted); }
+    .daily-quest { border-top-color:rgba(255,255,255,.07); }
+    .lb { gap:9px; padding:0 16px 24px; }
+    .lb-row { padding:12px; border-color:var(--line); border-radius:17px; background:var(--surface); box-shadow:inset 0 1px 0 rgba(255,255,255,.045); }
+    .lb-row.gold { border-color:rgba(251,191,36,.44); background:linear-gradient(110deg,rgba(251,191,36,.12),rgba(251,191,36,.02)),var(--surface); }
+    .lb-row.gold::before { background:transparent; }
+    .lb-pos { color:var(--accent); font-size:18px; font-weight:900; }
+    .lb-ava { border-color:rgba(var(--accent-rgb),.40); background:rgba(var(--accent-rgb),.15); }
+    .lb-name { color:var(--text); font-size:13px; font-weight:800; }
+    .lb-sub { color:var(--muted); }
+    .lb-score { color:var(--accent); font-size:20px; font-weight:900; letter-spacing:-.05em; }
+    .loading { padding:70px 0; }
+    .spin { width:32px; height:32px; border-color:rgba(var(--accent-rgb),.16); border-top-color:var(--accent); box-shadow:0 0 20px rgba(var(--accent-rgb),.22); }
+    .spin-txt { color:var(--muted); font-size:9px; font-weight:850; letter-spacing:.14em; }
+    .empty { padding:75px 24px; }
+    .empty-ico { opacity:.68; filter:drop-shadow(0 6px 18px rgba(var(--accent-rgb),.25)); }
+    .empty-txt { color:var(--muted); line-height:1.5; }
+    .empty-retry { margin-top:15px; padding:9px 14px; }
+
+    /* Love view — retained functionality, reframed as a companion chamber */
+    .love-shell { padding:0 16px 25px; }
+    .love-glass { border-color:rgba(251,113,133,.30); border-radius:var(--radius-xl); background:linear-gradient(135deg,rgba(251,113,133,.16),rgba(167,139,250,.10) 62%,rgba(255,255,255,.04)); box-shadow:inset 0 1px 0 rgba(255,255,255,.11),var(--shadow); }
+    .love-glass::before { background:rgba(251,113,133,.20); }
+    .love-eyebrow { color:#fecdd3; }
+    .love-title { color:var(--text); }
+    .love-copy, .love-sub, .love-owned-meta, .love-catalog-anime { color:var(--muted); }
+    .love-name, .love-owned-name, .love-catalog-name { color:var(--text); }
+    .love-level-line { color:#ffe4e6; }
+    .love-progress { background:rgba(5,7,16,.42); }
+    .love-progress > span { background:linear-gradient(90deg,#fb7185,#f9a8d4); }
+    .love-action { border-color:rgba(251,113,133,.31); border-radius:13px; background:rgba(255,255,255,.07); }
+    .love-action.primary { border-color:transparent; background:linear-gradient(135deg,#fb7185,#d8b4fe); color:#250b17; }
+    .love-action.romance { border-color:rgba(216,180,254,.50); }
+    .love-action.sell { color:#fed7aa; border-color:rgba(251,146,60,.46); }
+    .love-date-panel { border-top-color:rgba(255,255,255,.11); }
+    .love-date-choice { border-color:rgba(251,113,133,.28); border-radius:13px; background:rgba(255,255,255,.06); }
+    .love-section-title { color:var(--text); }
+    .love-owned-row, .love-catalog-card { border-color:var(--line); background:var(--surface); }
+    .love-select, .love-buy { border-color:rgba(251,113,133,.40); background:rgba(251,113,133,.12); color:#ffe4e6; }
+    .love-select.selected { border-color:transparent; background:linear-gradient(135deg,#fb7185,#f9a8d4); color:#310c1c; }
+
+    /* Detail and action sheets */
+    .modal { z-index:250; padding:13px; background:rgba(2,4,12,.72); backdrop-filter:blur(8px); }
+    .modal-sheet { border-color:var(--line-strong); border-radius:26px; background:linear-gradient(160deg,rgba(255,255,255,.07),transparent 34%),var(--surface-solid); box-shadow:0 22px 65px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.08); }
+    .modal-close { border-color:var(--line-strong); background:rgba(7,10,22,.72); color:var(--text); }
+    .detail-image-wrap { border-radius:18px; background:linear-gradient(145deg,rgba(var(--accent-rgb),.16),rgba(var(--accent2-rgb),.06)); }
+    .detail-name, .action-modal-title { color:var(--text); font-weight:880; }
+    .detail-anime, .action-modal-copy { color:var(--muted); }
+    .detail-badge { border-color:var(--line); background:rgba(255,255,255,.06); color:var(--text); }
+    .detail-row { border-color:var(--line); background:rgba(255,255,255,.045); }
+    .detail-label { color:var(--faint); }
+    .detail-value { color:var(--text); }
+    .modal-buy { width:100%; padding:13px; border-color:transparent; background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:var(--accent-ink); font-size:12px; }
+    .detail-action { border-color:var(--line-strong); border-radius:12px; background:rgba(255,255,255,.035); color:var(--text); }
+    .detail-action.danger, .action-modal-button.burn { border-color:transparent; background:linear-gradient(135deg,#fb7185,#e11d48); }
+    .detail-action.remove { color:#fde68a; border-color:rgba(251,191,36,.5); }
+    .action-modal { z-index:260; }
+    .action-modal .modal-sheet { max-width:410px; }
+    .sell-price-input { width:100%; padding:0 13px; font-size:15px; }
+    .action-modal-button { border-color:var(--line-strong); border-radius:12px; background:rgba(255,255,255,.04); color:var(--text); }
+    .action-modal-button.primary { border-color:transparent; background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:var(--accent-ink); }
+    .toast { bottom:calc(94px + env(safe-area-inset-bottom)); border-color:var(--line-strong); border-radius:15px; background:rgba(18,24,45,.94); color:var(--text); backdrop-filter:blur(16px); }
+    .toast.error { border-color:rgba(251,113,133,.58); color:#fecdd3; }
+
+    /* Floating navigation dock */
+    .navbar {
+      position:fixed; right:12px; bottom:calc(10px + env(safe-area-inset-bottom)); left:12px; z-index:170;
+      height:63px; padding:5px; border:1px solid var(--line-strong); border-radius:22px;
+      background:rgba(12,16,31,.83); box-shadow:0 14px 42px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.07);
+      backdrop-filter:blur(22px); -webkit-backdrop-filter:blur(22px);
+    }
+    .aurora-theme .navbar { background:rgba(5,27,34,.85); }
+    .ember-theme .navbar { background:rgba(36,21,10,.86); }
+    .nav-item { gap:3px; min-width:0; padding:7px 2px; border-radius:16px; color:var(--faint); font-size:8px; font-weight:850; letter-spacing:.04em; text-transform:none; }
+    .nav-item svg { width:19px; height:19px; stroke-width:1.9; }
+    .nav-item.active { background:rgba(var(--accent-rgb),.16); color:var(--text); box-shadow:inset 0 1px 0 rgba(255,255,255,.10); }
+    .nav-item.active::before { top:auto; bottom:5px; left:calc(50% - 2px); right:auto; width:4px; height:4px; border-radius:50%; background:var(--accent); box-shadow:0 0 9px var(--accent); }
+
+    @media (min-width:640px) {
+      .appbar { padding-right:max(24px,calc((100vw - 600px)/2)); padding-left:max(24px,calc((100vw - 600px)/2)); }
+      .page { width:min(620px,100%); margin:0 auto; }
+      .navbar { right:max(18px,calc((100vw - 590px)/2)); left:max(18px,calc((100vw - 590px)/2)); }
+      .grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+    }
+    @media (prefers-reduced-motion:reduce) {
+      *, *::before, *::after { animation-duration:.001ms !important; animation-iteration-count:1 !important; scroll-behavior:auto !important; transition-duration:.001ms !important; }
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="ambient" aria-hidden="true"><span class="orb-a"></span><span class="orb-b"></span></div>
+
+<header class="appbar" aria-label="HentaCatcher controls">
+  <button class="brand" type="button" onclick="goPage('profile')" aria-label="Open player vault">
+    <span class="brand-orb">✦</span>
+    <span class="brand-copy"><small>COLLECTION VAULT</small><strong>HentaCatcher</strong></span>
+  </button>
+  <div id="theme-menu-wrap">
+    <button id="theme-dots-btn" type="button" title="Change theme" aria-label="Change theme" aria-expanded="false" onclick="toggleThemeMenu(event)">
+      <span></span><span></span><span></span>
+    </button>
+    <div id="theme-dropdown" role="menu" aria-label="Theme selector">
+      <button class="theme-opt t-void tactive" id="topt-void" type="button" role="menuitem" onclick="setTheme('void')">
+        <span class="tdot tdot-void"></span> Void
+      </button>
+      <button class="theme-opt t-aurora" id="topt-aurora" type="button" role="menuitem" onclick="setTheme('aurora')">
+        <span class="tdot tdot-aurora"></span> Aurora
+      </button>
+      <button class="theme-opt t-ember" id="topt-ember" type="button" role="menuitem" onclick="setTheme('ember')">
+        <span class="tdot tdot-ember"></span> Ember
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="pages">
+
+  <!-- ── PROFILE / PLAYER VAULT ── -->
+  <div class="page active" id="p-profile">
+    <div class="hero">
+      <div class="hero-bg"></div>
+      <div class="hero-content">
+        <div class="hero-kicker"><span>PLAYER VAULT</span><span>INVENTORY SYNC</span></div>
+        <div class="hero-top">
+          <div class="ava-wrap">
+            <div class="ava">
+              <img class="ava-img" id="ava-img" alt="" hidden>
+              <span class="ava-fallback" id="ava-fallback">?</span>
+            </div>
+            <div class="ava-ring"></div>
+          </div>
+          <div class="hero-info">
+            <div class="hero-info-top"><div class="hero-name" id="uname">Loading...</div></div>
+            <div class="hero-id" id="telegram-id">Telegram ID: —</div>
+            <div class="hero-badge" id="top-r">— Rarity</div>
+          </div>
+        </div>
+        <div class="xp-section">
+          <div class="xp-meta">
+            <span class="xp-lvl" id="lvl-lbl">Level —</span>
+            <span class="xp-val" id="xp-lbl">—</span>
+          </div>
+          <div class="xp-track"><div class="xp-bar" id="xp-bar"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="stat-num" id="s-balance">—</div><div class="stat-lbl">Neko</div></div>
+      <div class="stat"><div class="stat-num" id="s-harem">—</div><div class="stat-lbl">Harem</div></div>
+      <div class="stat"><div class="stat-num" id="s-claims">—</div><div class="stat-lbl">Claims</div></div>
+      <div class="stat"><div class="stat-num" id="s-unique">—</div><div class="stat-lbl">Unique</div></div>
+    </div>
+
+    <!-- Only the global /topusers-equivalent rank is shown. -->
+    <div class="ranks">
+      <div class="rank-card">
+        <div class="rank-lbl">Global Rank</div>
+        <div class="rank-num" id="r-global">#—</div>
+        <div class="rank-sub">by total claims</div>
+      </div>
+    </div>
+
+    <section class="daily-hub" id="daily-hub" aria-label="Daily rewards">
+      <div class="daily-hub-title"><div><span class="hub-kicker">DAILY LOOP</span>Daily Rewards</div><span class="hub-sigil">✦</span></div>
+      <div id="daily-hub-content"><div class="loading"><div class="spin"></div><div class="spin-txt">LOADING DAILY REWARDS</div></div></div>
+    </section>
+
+    <div class="actions">
+      <button class="btn btn-primary" type="button" onclick="goPage('harem')">Open Collection →</button>
+      <button class="btn btn-secondary" type="button" onclick="goPage('lb')">View Rankings</button>
+    </div>
+  </div>
+
+  <!-- ── HAREM ── -->
+  <div class="page" id="p-harem">
+    <div class="ph">
+      <div><div class="ph-kicker">COLLECTION</div><div class="ph-title">My Harem</div></div>
+      <div class="ph-count" id="harem-count">— cards</div>
+    </div>
+    <div class="harem-tools">
+      <input class="harem-search" id="harem-search" type="search" autocomplete="off" placeholder="Search name or anime">
+      <select class="harem-sort" id="harem-sort" aria-label="Sort Harem">
+        <option value="newest">Newest</option>
+        <option value="rarity">Rarity</option>
+        <option value="copies">Copies</option>
+        <option value="name">A–Z</option>
+      </select>
+    </div>
+    <div class="collection-progress" id="collection-progress" hidden>
+      <div class="collection-progress-top"><span>Collection progress</span><span id="completion-percent">0%</span></div>
+      <div class="collection-progress-sub" id="completion-count">0 / 0 unique cards</div>
+      <div class="collection-progress-track"><div class="collection-progress-bar" id="completion-bar"></div></div>
+    </div>
+    <div class="chips" id="rarity-chips" aria-label="Rarity filters">
+      <button class="chip on" type="button" onclick="filt('All',this)">✦ All</button>
+      <button class="chip" type="button" onclick="filt('OverLord',this)">☬ OverLord</button>
+      <button class="chip" type="button" onclick="filt('Suspicious',this)">ᯓ Suspicious</button>
+      <button class="chip" type="button" onclick="filt('Eternal',this)">Eternal</button>
+      <button class="chip" type="button" onclick="filt('OP',this)">OP</button>
+      <button class="chip" type="button" onclick="filt('Sovereign',this)">Sovereign</button>
+      <button class="chip" type="button" onclick="filt('Mythical',this)">Mythical</button>
+      <button class="chip" type="button" onclick="filt('Legendary',this)">Legendary</button>
+      <button class="chip" type="button" onclick="filt('Rare',this)">Rare</button>
+      <button class="chip" type="button" onclick="filt('Love',this)">❤️ Love</button>
+      <button class="chip" type="button" onclick="filt('Common',this)">Common</button>
+    </div>
+    <div id="harem-out"><div class="loading"><div class="spin"></div><div class="spin-txt">LOADING HAREM</div></div></div>
+  </div>
+
+  <!-- ── MARKET ── -->
+  <div class="page" id="p-market">
+    <div class="ph">
+      <div><div class="ph-kicker">PLAYER EXCHANGE</div><div class="ph-title">Market</div></div>
+      <div class="ph-count" id="market-count">— available</div>
+    </div>
+    <div class="market-note">Each listing is one copy. Player cards stay in safe escrow until sold or removed.</div>
+    <div id="market-out"><div class="loading"><div class="spin"></div><div class="spin-txt">LOADING MARKET</div></div></div>
+  </div>
+
+  <!-- ── LOVE ── -->
+  <div class="page" id="p-love">
+    <div class="ph">
+      <div><div class="ph-kicker">COMPANION CHAMBER</div><div class="ph-title">Love ❤️</div></div>
+      <div class="ph-count" id="love-count">—</div>
+    </div>
+    <div id="love-out"><div class="loading"><div class="spin"></div><div class="spin-txt">LOADING LOVE</div></div></div>
+  </div>
+
+  <!-- ── LEADERBOARD ── -->
+  <div class="page" id="p-lb">
+    <div class="ph"><div><div class="ph-kicker">GLOBAL SIGNAL</div><div class="ph-title">Top Players</div></div></div>
+    <div id="lb-out"><div class="loading"><div class="spin"></div><div class="spin-txt">LOADING</div></div></div>
+  </div>
+
+</div>
+
+<!-- ── CHARACTER DETAIL ── -->
+<div class="modal" id="card-modal" hidden onclick="if (event.target === this) closeCardDetail()">
+  <section class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="detail-name">
+    <button class="modal-close" type="button" aria-label="Close" onclick="closeCardDetail()">×</button>
+    <div class="detail-image-wrap">
+      <div class="detail-placeholder">🌸</div>
+      <img class="detail-image" id="detail-image" alt="">
+      <video class="detail-image detail-video" id="detail-video" muted loop playsinline autoplay controls preload="metadata" hidden></video>
+    </div>
+    <div class="detail-name" id="detail-name">—</div>
+    <div class="detail-anime" id="detail-anime">—</div>
+    <div class="detail-badges" id="detail-badges"></div>
+    <div class="detail-grid" id="detail-grid"></div>
+    <button class="modal-buy" id="detail-buy" type="button" hidden></button>
+    <div class="detail-actions" id="detail-actions" hidden>
+      <button class="detail-action" id="detail-sell" type="button">Sell Card</button>
+      <button class="detail-action danger" id="detail-burn" type="button">Burn Card</button>
+    </div>
+    <button class="detail-action remove" id="detail-remove" type="button" hidden>Remove listing</button>
+  </section>
+</div>
+
+<div class="modal action-modal" id="sell-modal" hidden onclick="if (event.target === this) closeSellModal()">
+  <section class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="sell-modal-title">
+    <button class="modal-close" type="button" aria-label="Close" onclick="closeSellModal()">×</button>
+    <div class="action-modal-title" id="sell-modal-title">Sell Card</div>
+    <div class="action-modal-copy" id="sell-modal-copy">Set the Neko price for one copy.</div>
+    <input class="sell-price-input" id="sell-price-input" type="text" inputmode="decimal" autocomplete="off" placeholder="210">
+    <div class="action-modal-buttons">
+      <button class="action-modal-button" id="sell-cancel" type="button">Cancel</button>
+      <button class="action-modal-button primary" id="sell-confirm" type="button">List for sale</button>
+    </div>
+  </section>
+</div>
+
+<div class="modal action-modal" id="burn-modal" hidden onclick="if (event.target === this) closeBurnModal()">
+  <section class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="burn-modal-title">
+    <button class="modal-close" type="button" aria-label="Close" onclick="closeBurnModal()">×</button>
+    <div class="action-modal-title" id="burn-modal-title">Burn Card</div>
+    <div class="action-modal-copy" id="burn-modal-copy">This permanently destroys one copy.</div>
+    <div class="action-modal-buttons">
+      <button class="action-modal-button" id="burn-cancel" type="button">Cancel</button>
+      <button class="action-modal-button burn" id="burn-confirm" type="button">Burn one copy</button>
+    </div>
+  </section>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<!-- ── FLOATING NAVIGATION DOCK ── -->
+<nav class="navbar" aria-label="Mini App navigation">
+  <button class="nav-item active" id="nav-profile" type="button" onclick="goPage('profile')" aria-label="Player vault">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg><span>Vault</span>
+  </button>
+  <button class="nav-item" id="nav-harem" type="button" onclick="goPage('harem')" aria-label="Harem collection">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6.5h15a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2z"/><path d="M3.5 6.5V5a2 2 0 0 1 2-2h12"/><path d="M16 13h5"/><circle cx="16" cy="13" r="0.8" fill="currentColor" stroke="none"/></svg><span>Harem</span>
+  </button>
+  <button class="nav-item" id="nav-love" type="button" onclick="goPage('love')" aria-label="Love cards">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21C12 21 4 13.5 4 8.5a5 5 0 0 1 8-4 5 5 0 0 1 8 4c0 5-8 12.5-8 12.5z"/></svg><span>Love</span>
+  </button>
+  <button class="nav-item" id="nav-market" type="button" onclick="goPage('market')" aria-label="Player market">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4"/><circle cx="9" cy="19" r="1"/><circle cx="20" cy="19" r="1"/></svg><span>Market</span>
+  </button>
+  <button class="nav-item" id="nav-lb" type="button" onclick="goPage('lb')" aria-label="Leaderboard">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="12" width="4" height="9"/><rect x="10" y="8" width="4" height="13"/><rect x="17" y="4" width="4" height="17"/></svg><span>Ranks</span>
+  </button>
+</nav>
+
+<script>
+  // The Mini App can be hosted separately from the FastAPI service. Try its
+  // exact current origin first, then the configured Railway fallback. A signed
+  // JSON /health probe prevents a stale hard-coded deployment URL from sending
+  // every profile/Harem/Market request to a different service.
+  const configuredApi = document.querySelector('meta[name="hentacatcher-api"]')?.content?.trim();
+  function normalizeApiBase(value) {
+    const base = typeof value === "string" ? value.trim().replace(/\/+$/, "") : "";
+    return /^https?:\/\//i.test(base) ? base : "";
+  }
+  const API_CANDIDATES = [...new Set([
+    normalizeApiBase(window.location.origin),
+    normalizeApiBase(configuredApi),
+  ].filter(Boolean))];
+  const REQUEST_TIMEOUT_MS = 20_000;
+  const API_PROBE_TIMEOUT_MS = 6_000;
+  const tg = window.Telegram?.WebApp || null;
+  const telegramUser = tg?.initDataUnsafe?.user || null;
+  const initData = tg?.initData || "";
+  const uid = Number.isSafeInteger(telegramUser?.id) ? telegramUser.id : null;
+  const RARITIES = new Set(["Common", "Rare", "Legendary", "Mythical", "Sovereign", "OP", "Eternal", "Suspicious", "OverLord", "Love"]);
+
+  let chars = [];
+  let marketListings = [];
+  let loveOverview = null;
+  let loveLoaded = false;
+  let loveLoading = false;
+  let loveActionBusy = false;
+  let loveDateOpen = false;
+  let currentFilter = "All";
+  let haremLoaded = false;
+  let haremLoading = false;
+  let marketLoaded = false;
+  let leaderboardLoaded = false;
+  let activeListing = null;
+  let activeHaremCard = null;
+  let buyingListingId = null;
+  let selling = false;
+  let burning = false;
+  let removingListing = false;
+  let imageObserver = null;
+  let toastTimer = null;
+  let reportedHaremCount = null;
+  let haremCompletion = null;
+  let haremSearch = "";
+  let haremSort = "newest";
+  let dailyHubLoaded = false;
+  let dailyHubLoading = false;
+  let dailyClaiming = false;
+  let dailyHub = null;
+  const imageCache = new Map();
+  const leaderboardAvatarCache = new Map();
+  let resolvedApiBase = "";
+  let apiBaseResolution = null;
+
+  if (tg) {
+    try { tg.ready(); } catch (_) {}
+    try { tg.expand(); } catch (_) {}
+    try { tg.setHeaderColor("#000000"); } catch (_) {}
+  }
+
+  async function timedFetch(url, options = {}, timeoutMs = REQUEST_TIMEOUT_MS) {
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      return await fetch(url, { ...options, signal: controller.signal });
+    } catch (error) {
+      if (error?.name === "AbortError") throw new Error("API request timed out");
+      throw error;
+    } finally {
+      window.clearTimeout(timeout);
+    }
+  }
+
+  async function probeApiBase(base) {
+    const response = await timedFetch(
+      `${base}/health`,
+      { headers: { Accept: "application/json" } },
+      API_PROBE_TIMEOUT_MS,
+    );
+    if (!response.ok) throw new Error(`API health returned ${response.status}`);
+    const contentType = response.headers.get("content-type") || "";
+    if (!contentType.includes("application/json")) throw new Error("API health was not JSON");
+    const payload = await response.json();
+    if (payload?.service !== "HentaCatcher API" || payload?.status !== "ok") {
+      throw new Error("Unexpected API health response");
+    }
+    return base;
+  }
+
+  async function resolveApiBase() {
+    if (resolvedApiBase) return resolvedApiBase;
+    if (apiBaseResolution) return await apiBaseResolution;
+    apiBaseResolution = (async () => {
+      let lastError = null;
+      for (const candidate of API_CANDIDATES) {
+        try {
+          return await probeApiBase(candidate);
+        } catch (error) {
+          lastError = error;
+        }
+      }
+      throw lastError || new Error("Mini App API could not be found");
+    })();
+    try {
+      resolvedApiBase = await apiBaseResolution;
+      return resolvedApiBase;
+    } finally {
+      apiBaseResolution = null;
+    }
+  }
+
+  async function apiFetch(path, options = {}) {
+    if (!initData) throw new Error("Open this Mini App from Telegram.");
+    const apiBase = await resolveApiBase();
+    const headers = new Headers(options.headers || {});
+    headers.set("X-Telegram-Init-Data", initData);
+    return await timedFetch(`${apiBase}${path}`, { ...options, headers });
+  }
+
+  function validRarity(value) {
+    return RARITIES.has(value) ? value : null;
+  }
+
+  function displayName(value, fallback = "User") {
+    const name = typeof value === "string" ? value.trim() : "";
+    return name || fallback;
+  }
+
+  function formatNeko(value) {
+    const match = /^(\d+)(?:\.(\d{1,2}))?$/.exec(String(value ?? "0").trim());
+    if (!match) return "0 Neko";
+    const whole = match[1].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    const fraction = (match[2] || "").replace(/0+$/, "");
+    return `${whole}${fraction ? `.${fraction}` : ""} Neko`;
+  }
+
+  function formatDate(value) {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "—";
+    return new Intl.DateTimeFormat(undefined, {
+      year:"numeric", month:"short", day:"numeric", hour:"2-digit", minute:"2-digit",
+    }).format(date);
+  }
+
+  function haptic(kind = "light") {
+    try { tg?.HapticFeedback?.impactOccurred(kind); } catch (_) {}
+  }
+
+  function showToast(message, isError = false) {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+    toast.classList.toggle("error", isError);
+    toast.classList.add("show");
+    window.clearTimeout(toastTimer);
+    toastTimer = window.setTimeout(() => toast.classList.remove("show"), 3200);
+  }
+
+  function setAvatar(user, name) {
+    const photo = document.getElementById("ava-img");
+    const fallback = document.getElementById("ava-fallback");
+    const initial = displayName(name, "?").charAt(0).toUpperCase() || "?";
+    fallback.textContent = initial;
+    photo.hidden = true;
+    fallback.hidden = false;
+
+    const candidates = [
+      user?.photo_url,
+      user?.small_photo_url,
+      user?.big_photo_url,
+      user?.profile_photo,
+    ].filter(u => typeof u === "string" && /^https?:\/\//i.test(u.trim()));
+
+    if (!candidates.length) return;
+
+    let idx = 0;
+    function tryNext() {
+      if (idx >= candidates.length) {
+        photo.hidden = true;
+        fallback.hidden = false;
+        return;
+      }
+      const url = candidates[idx++];
+      photo.removeAttribute("src");
+      photo.removeAttribute("crossorigin");
+      photo.onload = () => { photo.hidden = false; fallback.hidden = true; };
+      photo.onerror = () => tryNext();
+      photo.src = url;
+    }
+    tryNext();
+  }
+
+  function renderLocalIdentity() {
+    if (!uid) {
+      document.getElementById("uname").textContent = "Open in Telegram";
+      document.getElementById("telegram-id").textContent = "Telegram Web App required";
+      setAvatar(null, "?");
+      return;
+    }
+    const name = displayName(telegramUser?.first_name || telegramUser?.username, "User");
+    document.getElementById("uname").textContent = name;
+    document.getElementById("telegram-id").textContent = `Telegram ID: ${uid}`;
+    setAvatar(telegramUser, name);
+  }
+
+  function setLoading(containerId, label) {
+    const output = document.getElementById(containerId);
+    const loading = document.createElement("div");
+    loading.className = "loading";
+    const spinner = document.createElement("div");
+    spinner.className = "spin";
+    const text = document.createElement("div");
+    text.className = "spin-txt";
+    text.textContent = label;
+    loading.append(spinner, text);
+    output.replaceChildren(loading);
+  }
+
+  function setEmpty(containerId, icon, text, onRetry = null) {
+    const output = document.getElementById(containerId);
+    const empty = document.createElement("div");
+    empty.className = "empty";
+    const iconNode = document.createElement("div");
+    iconNode.className = "empty-ico";
+    iconNode.textContent = icon;
+    const textNode = document.createElement("div");
+    textNode.className = "empty-txt";
+    textNode.textContent = text;
+    empty.append(iconNode, textNode);
+    if (typeof onRetry === "function") {
+      const retry = document.createElement("button");
+      retry.className = "empty-retry";
+      retry.type = "button";
+      retry.textContent = "Retry";
+      retry.addEventListener("click", onRetry);
+      empty.append(retry);
+    }
+    output.replaceChildren(empty);
+  }
+
+  function normalizedCatalogMediaType(value) {
+    return typeof value === "string" && value.trim().toLowerCase() === "video" ? "video" : "photo";
+  }
+
+  async function getProtectedMediaObjectUrl(path, cache, cacheKey, expectedKind = "photo") {
+    if (!cacheKey) return null;
+    const cached = cache.get(cacheKey);
+    if (cached) return await cached;
+    const pending = (async () => {
+      const response = await apiFetch(path);
+      if (!response.ok) return null;
+      const contentType = response.headers.get("content-type") || "";
+      const expectedPrefix = expectedKind === "video" ? "video/" : "image/";
+      if (!contentType.startsWith(expectedPrefix)) return null;
+      return URL.createObjectURL(await response.blob());
+    })();
+    cache.set(cacheKey, pending);
+    try {
+      const url = await pending;
+      if (url) cache.set(cacheKey, url);
+      else cache.delete(cacheKey);
+      return url;
+    } catch (_) {
+      cache.delete(cacheKey);
+      return null;
+    }
+  }
+
+  function getCardMediaObjectUrl(fileId, mediaType) {
+    const kind = normalizedCatalogMediaType(mediaType);
+    const cleanFileId = String(fileId || "").trim();
+    if (!cleanFileId) return Promise.resolve(null);
+    return getProtectedMediaObjectUrl(
+      `/image/${encodeURIComponent(cleanFileId)}`,
+      imageCache,
+      `${kind}:${cleanFileId}`,
+      kind,
+    );
+  }
+
+  const RARITY_EMOJI = {
+    Common: "✧",
+    Rare: "◈",
+    Legendary: "✪",
+    Mythical: "✵",
+    Sovereign: "♛",
+    OP: "亗",
+    Eternal: "𖣘",
+    Suspicious: "ᯓ",
+    OverLord: "☬",
+    Love: "❤️",
+  };
+  const BURN_REWARDS = {
+    Common: 1,
+    Rare: 2,
+    Legendary: 5,
+    Mythical: 10,
+    Sovereign: 15,
+    OP: 20,
+    Suspicious: 25,
+  };
+
+  function getLeaderboardAvatarObjectUrl(userId) {
+    const safeUserId = Number(userId);
+    if (!Number.isSafeInteger(safeUserId) || safeUserId <= 0) return Promise.resolve(null);
+    return getProtectedMediaObjectUrl(
+      `/leaderboard/avatar/${encodeURIComponent(String(safeUserId))}`,
+      leaderboardAvatarCache,
+      String(safeUserId),
+      "photo",
+    );
+  }
+
+  async function loadLeaderboardAvatar(image, fallback, userId) {
+    image.hidden = true;
+    fallback.hidden = false;
+    try {
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("timeout")), 5000)
+      );
+      const url = await Promise.race([getLeaderboardAvatarObjectUrl(userId), timeoutPromise]);
+      if (!url) return;
+      image.onload = () => { image.hidden = false; fallback.hidden = true; };
+      image.onerror = () => { image.hidden = true; fallback.hidden = false; };
+      image.src = url;
+    } catch (_) {
+      image.hidden = true;
+      fallback.hidden = false;
+    }
+  }
+
+  async function loadCardMedia(media) {
+    const fileId = media.dataset.fileId || "";
+    const mediaType = normalizedCatalogMediaType(media.dataset.mediaType);
+    const url = await getCardMediaObjectUrl(fileId, mediaType);
+    if (!url) return;
+    const reveal = () => media.classList.add("on");
+    const hide = () => media.classList.remove("on");
+    if (media instanceof HTMLVideoElement) {
+      media.onloadeddata = reveal;
+      media.onerror = hide;
+      media.src = url;
+      media.load();
+      const playback = media.play();
+      if (playback && typeof playback.catch === "function") playback.catch(() => {});
+      return;
+    }
+    media.onload = reveal;
+    media.onerror = hide;
+    media.src = url;
+  }
+
+  function lazyLoadCardImages() {
+    if (imageObserver) imageObserver.disconnect();
+    const mediaItems = document.querySelectorAll(".card-img[data-file-id]");
+    if (!("IntersectionObserver" in window)) {
+      mediaItems.forEach(media => { void loadCardMedia(media); });
+      return;
+    }
+    imageObserver = new IntersectionObserver(entries => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        void loadCardMedia(entry.target);
+        imageObserver.unobserve(entry.target);
+      }
+    }, { rootMargin:"350px" });
+    mediaItems.forEach(media => imageObserver.observe(media));
+  }
+
+  function appendDetailRow(container, label, value, wide = false) {
+    const row = document.createElement("div");
+    row.className = `detail-row${wide ? " wide" : ""}`;
+    const labelNode = document.createElement("div");
+    labelNode.className = "detail-label";
+    labelNode.textContent = label;
+    const valueNode = document.createElement("div");
+    valueNode.className = "detail-value";
+    valueNode.textContent = value;
+    row.append(labelNode, valueNode);
+    container.append(row);
+  }
+
+  function rarityEmoji(value) {
+    return RARITY_EMOJI[validRarity(value)] || "✦";
+  }
+
+  function responsePayload(response) {
+    return response.json().catch(() => null);
+  }
+
+  function openCardDetail(card, listing = null) {
+    activeListing = listing;
+    activeHaremCard = listing ? null : card;
+    const modal = document.getElementById("card-modal");
+    const image = document.getElementById("detail-image");
+    const video = document.getElementById("detail-video");
+    const anime = document.getElementById("detail-anime");
+    const badges = document.getElementById("detail-badges");
+    const details = document.getElementById("detail-grid");
+    const buy = document.getElementById("detail-buy");
+    const actions = document.getElementById("detail-actions");
+    const sell = document.getElementById("detail-sell");
+    const burn = document.getElementById("detail-burn");
+    const remove = document.getElementById("detail-remove");
+    const name = displayName(card.name, "Unknown character");
+    const rarity = validRarity(card.rarity) || "Common";
+    const eventName = typeof card.event === "string" ? card.event.trim() : "";
+    const copies = Math.max(1, Number(card.copy_count || 1));
+    const fileId = typeof card.image_url === "string" ? card.image_url : "";
+    const mediaType = normalizedCatalogMediaType(card.media_type);
+    const isMarket = Boolean(listing);
+
+    document.getElementById("detail-name").textContent = name;
+    anime.hidden = isMarket;
+    anime.textContent = isMarket ? "" : displayName(card.anime, "—");
+
+    image.classList.remove("on");
+    image.removeAttribute("src");
+    image.hidden = mediaType === "video";
+    image.dataset.fileId = fileId;
+    image.dataset.mediaType = mediaType;
+    image.alt = name;
+
+    video.pause();
+    video.classList.remove("on");
+    video.removeAttribute("src");
+    video.load();
+    video.hidden = mediaType !== "video";
+    video.dataset.fileId = fileId;
+    video.dataset.mediaType = mediaType;
+    video.setAttribute("aria-label", name);
+
+    const visual = mediaType === "video" ? video : image;
+    badges.replaceChildren();
+    details.replaceChildren();
+
+    const rarityBadge = document.createElement("span");
+    rarityBadge.className = "detail-badge";
+    rarityBadge.textContent = `${rarityEmoji(rarity)} ${rarity}`;
+    badges.append(rarityBadge);
+    if (eventName) {
+      const eventBadge = document.createElement("span");
+      eventBadge.className = "detail-badge";
+      eventBadge.textContent = `🎉 ${eventName}`;
+      badges.append(eventBadge);
+    }
+
+    if (isMarket) {
+      // Market details intentionally contain only the requested buying facts.
+      appendDetailRow(details, "Rarity score", String(card.rarity_score ?? "—"));
+      appendDetailRow(details, "Price", formatNeko(listing.price));
+    } else {
+      // Harem details intentionally omit acquired time, aliases, and catalog state.
+      appendDetailRow(details, "Character ID", `#${card.character_id || "—"}`);
+      appendDetailRow(details, "Rarity score", String(card.rarity_score ?? "—"));
+      appendDetailRow(details, "Copies owned", String(copies));
+      appendDetailRow(details, "Favorite", card.is_favorite ? "Yes" : "No");
+      if (rarity === "Love") {
+        appendDetailRow(details, "Love code", card.love_code || "—");
+        appendDetailRow(details, "Current level", `Level ${card.love_level || 1}${card.love_level >= 5 ? " · MAX" : ""}`);
+        if (card.love_level < 5) appendDetailRow(details, "Love points", `${card.love_level_points || 0} / ${card.love_next_target || "—"}`);
+        appendDetailRow(details, "Active", card.love_is_active ? "Yes" : "No");
+      }
+    }
+
+    const canBuy = Boolean(listing) && listing.can_buy !== false;
+    buy.hidden = !listing || !canBuy;
+    buy.disabled = Boolean(listing && buyingListingId === listing.listing_id);
+    buy.textContent = listing ? `Buy for ${formatNeko(listing.price)}` : "";
+    buy.onclick = () => { if (activeListing) confirmPurchase(activeListing); };
+
+    const eternal = rarity === "Eternal";
+    const overlord = rarity === "OverLord";
+    const love = rarity === "Love";
+    // Love has a separate fixed-price active-card sale flow in its own panel;
+    // it must never use generic player pricing or burn controls.
+    actions.hidden = isMarket || eternal || overlord || love;
+    sell.onclick = () => openSellModal(activeHaremCard);
+    burn.onclick = () => openBurnModal(activeHaremCard);
+    remove.hidden = !listing || listing.can_remove !== true;
+    remove.textContent = listing?.is_own_listing ? "Cancel listing" : "Remove listing";
+    remove.onclick = () => { if (activeListing) requestRemoveListing(activeListing); };
+
+    modal.hidden = false;
+    haptic();
+    void getCardMediaObjectUrl(fileId, mediaType).then(mediaUrl => {
+      if (
+        modal.hidden
+        || visual.dataset.fileId !== fileId
+        || visual.dataset.mediaType !== mediaType
+        || !mediaUrl
+      ) return;
+      if (visual instanceof HTMLVideoElement) {
+        visual.onloadeddata = () => visual.classList.add("on");
+        visual.onerror = () => visual.classList.remove("on");
+        visual.src = mediaUrl;
+        visual.load();
+        const playback = visual.play();
+        if (playback && typeof playback.catch === "function") playback.catch(() => {});
+      } else {
+        visual.onload = () => visual.classList.add("on");
+        visual.onerror = () => visual.classList.remove("on");
+        visual.src = mediaUrl;
+      }
+    });
+  }
+
+  function closeCardDetail() {
+    activeListing = null;
+    activeHaremCard = null;
+    const video = document.getElementById("detail-video");
+    video.pause();
+    document.getElementById("card-modal").hidden = true;
+  }
+
+  function openSellModal(card) {
+    if (!card || !Number(card.harem_id)) {
+      showToast("That Harem copy is no longer available.", true);
+      return;
+    }
+    document.getElementById("sell-modal-copy").textContent =
+      `List one ${displayName(card.name, "card")} copy. It moves into Market escrow immediately.`;
+    const input = document.getElementById("sell-price-input");
+    input.value = "";
+    document.getElementById("sell-modal").hidden = false;
+    window.setTimeout(() => input.focus(), 40);
+  }
+
+  function closeSellModal() {
+    document.getElementById("sell-modal").hidden = true;
+  }
+
+  function openBurnModal(card) {
+    if (!card || !Number(card.harem_id)) {
+      showToast("That Harem copy is no longer available.", true);
+      return;
+    }
+    const rarity = validRarity(card.rarity) || "Common";
+    if (rarity === "Eternal") {
+      showToast("Eternal cards cannot be burned.", true);
+      return;
+    }
+    if (rarity === "OverLord") {
+      showToast("OverLord cards cannot be burned.", true);
+      return;
+    }
+    const reward = BURN_REWARDS[rarity];
+    document.getElementById("burn-modal-copy").textContent =
+      `This permanently burns one ${displayName(card.name, "card")} copy for ${reward ?? "its"} ${reward ? "Neko" : "fixed Neko reward"}.`;
+    document.getElementById("burn-modal").hidden = false;
+  }
+
+  function closeBurnModal() {
+    document.getElementById("burn-modal").hidden = true;
+  }
+
+  async function submitSell() {
+    const card = activeHaremCard;
+    const button = document.getElementById("sell-confirm");
+    const price = document.getElementById("sell-price-input").value.trim();
+    if (!card || !Number(card.harem_id) || selling) return;
+    if (!/^\d+(?:\.\d{1,2})?$/.test(price) || Number(price) <= 0) {
+      showToast("Enter a positive Neko price with at most two decimals.", true);
+      return;
+    }
+    selling = true;
+    button.disabled = true;
+    try {
+      const response = await apiFetch("/market/list", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ harem_id: Number(card.harem_id), price }),
+      });
+      const payload = await responsePayload(response);
+      if (!response.ok) {
+        showToast(errorMessage(payload, "This card could not be listed."), true);
+        return;
+      }
+      closeSellModal();
+      closeCardDetail();
+      haptic("medium");
+      showToast(`${displayName(card.name, "Card")} is now listed in the Market.`);
+      await Promise.all([loadUser(), loadHarem(true), loadMarket(true)]);
+    } catch (_) {
+      showToast("Could not contact the Market. Please try again.", true);
+    } finally {
+      selling = false;
+      button.disabled = false;
+    }
+  }
+
+  async function submitBurn() {
+    const card = activeHaremCard;
+    const button = document.getElementById("burn-confirm");
+    if (!card || !Number(card.harem_id) || burning) return;
+    burning = true;
+    button.disabled = true;
+    try {
+      const response = await apiFetch(`/harem/${encodeURIComponent(String(card.harem_id))}/burn`, { method: "POST" });
+      const payload = await responsePayload(response);
+      if (!response.ok) {
+        showToast(errorMessage(payload, "This card could not be burned."), true);
+        return;
+      }
+      closeBurnModal();
+      closeCardDetail();
+      haptic("heavy");
+      showToast(`${displayName(payload?.name || card.name, "Card")} was burned for ${formatNeko(payload?.reward)}.`);
+      await Promise.all([loadUser(), loadHarem(true)]);
+    } catch (_) {
+      showToast("Could not contact the Harem. Please try again.", true);
+    } finally {
+      burning = false;
+      button.disabled = false;
+    }
+  }
+
+  function requestRemoveListing(listing) {
+    if (removingListing) return;
+    const prompt = listing.is_own_listing
+      ? "Cancel this listing and return the card to your Harem?"
+      : "Remove this exact Market listing? The card will be returned to its seller.";
+    const continueRemove = confirmed => { if (confirmed) void removeListing(listing); };
+    try {
+      if (tg?.showConfirm) {
+        tg.showConfirm(prompt, continueRemove);
+        return;
+      }
+    } catch (_) {}
+    continueRemove(window.confirm(prompt));
+  }
+
+  async function removeListing(listing) {
+    if (removingListing) return;
+    removingListing = true;
+    const removeButton = document.getElementById("detail-remove");
+    removeButton.disabled = true;
+    try {
+      const response = await apiFetch(`/market/${encodeURIComponent(String(listing.listing_id))}`, { method: "DELETE" });
+      const payload = await responsePayload(response);
+      if (!response.ok) {
+        showToast(errorMessage(payload, "This listing could not be removed."), true);
+        return;
+      }
+      closeCardDetail();
+      haptic("medium");
+      showToast(listing.is_own_listing ? "Listing cancelled. Your card is back in Harem." : "Listing removed.");
+      const refreshTasks = [loadMarket(true), loadHarem(true), loadUser()];
+      // Cancelling the viewer's own Love listing restores its escrowed state,
+      // so refresh the cached Love panel immediately instead of waiting for a
+      // later navigation to fetch it again.
+      if (listing?.rarity === "Love" && listing?.is_own_listing) refreshTasks.push(loadLove(true));
+      await Promise.all(refreshTasks);
+    } catch (_) {
+      showToast("Could not contact the Market. Please try again.", true);
+    } finally {
+      removingListing = false;
+      removeButton.disabled = false;
+    }
+  }
+
+  function createCharacterCard(card, listing = null) {
+    const name = displayName(card.name, "Unknown character");
+    const rarity = validRarity(card.rarity) || "Common";
+    const eventName = typeof card.event === "string" ? card.event.trim() : "";
+    const fileId = typeof card.image_url === "string" ? card.image_url : "";
+    const mediaType = normalizedCatalogMediaType(card.media_type);
+    const element = document.createElement("article");
+    element.className = `card${card.is_favorite ? " fav" : ""}`;
+    element.tabIndex = 0;
+    element.setAttribute("role", "button");
+    element.setAttribute("aria-label", `View details for ${name}`);
+    element.addEventListener("click", () => { openCardDetail(card, listing); });
+    element.addEventListener("keydown", event => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        openCardDetail(card, listing);
+      }
+    });
+
+    const imageWrap = document.createElement("div");
+    imageWrap.className = "card-img-wrap";
+    const placeholder = document.createElement("div");
+    placeholder.className = "card-ph";
+    placeholder.textContent = "🌸";
+    const image = document.createElement(mediaType === "video" ? "video" : "img");
+    image.className = "card-img";
+    image.dataset.fileId = fileId;
+    image.dataset.mediaType = mediaType;
+    if (image instanceof HTMLVideoElement) {
+      image.muted = true;
+      image.loop = true;
+      image.playsInline = true;
+      image.preload = "metadata";
+      image.setAttribute("aria-label", name);
+    } else {
+      image.alt = name;
+    }
+    const overlay = document.createElement("div");
+    overlay.className = "card-overlay";
+    const accent = document.createElement("div");
+    accent.className = `card-line rl-${rarity}`;
+    const tags = document.createElement("div");
+    tags.className = "card-tags";
+    const rarityNode = document.createElement("div");
+    rarityNode.className = "card-rarity";
+    rarityNode.textContent = `${rarityEmoji(rarity)} ${rarity}`;
+    tags.append(rarityNode);
+    if (eventName) {
+      const eventNode = document.createElement("div");
+      eventNode.className = "event-chip";
+      eventNode.textContent = `🎉 ${eventName}`;
+      eventNode.title = eventName;
+      tags.append(eventNode);
+    }
+    if (!listing && rarity === "Love") {
+      const loveNode = document.createElement("div");
+      loveNode.className = "event-chip";
+      loveNode.textContent = `${card.love_code || "Love"} · Lv${card.love_level || 1}${card.love_is_active ? " · Active" : ""}`;
+      tags.append(loveNode);
+    }
+    imageWrap.append(placeholder, image, overlay, accent, tags);
+    const copies = Math.max(1, Number(card.copy_count || 1));
+    if (!listing && copies > 1) {
+      const copyCount = document.createElement("div");
+      copyCount.className = "copy-count";
+      copyCount.textContent = `×${copies}`;
+      copyCount.title = `${copies} copies stacked`;
+      imageWrap.append(copyCount);
+    }
+    if (card.catalog_available === false) {
+      const warning = document.createElement("div");
+      warning.className = "catalog-warning";
+      warning.textContent = "Catalog entry unavailable";
+      imageWrap.append(warning);
+    }
+    if (card.is_favorite) {
+      const favorite = document.createElement("div");
+      favorite.className = "fav-star";
+      favorite.textContent = "⭐";
+      imageWrap.append(favorite);
+    }
+
+    const body = document.createElement("div");
+    body.className = "card-body";
+    const nameNode = document.createElement("div");
+    nameNode.className = "card-name";
+    nameNode.textContent = name;
+    const animeNode = document.createElement("div");
+    animeNode.className = "card-anime";
+    animeNode.textContent = displayName(card.anime, "—");
+    body.append(nameNode, animeNode);
+
+    if (listing) {
+      const priceRow = document.createElement("div");
+      priceRow.className = "market-price-row";
+      const price = document.createElement("div");
+      price.className = "market-price";
+      price.textContent = formatNeko(listing.price);
+      const buy = document.createElement("button");
+      buy.className = "buy-btn";
+      buy.type = "button";
+      const canBuy = listing.can_buy !== false;
+      buy.textContent = canBuy ? "Buy" : (listing.is_own_listing ? "Your listing" : "Unavailable");
+      buy.disabled = !canBuy || buyingListingId === listing.listing_id;
+      buy.addEventListener("click", event => {
+        event.stopPropagation();
+        if (canBuy) confirmPurchase(listing);
+      });
+      priceRow.append(price, buy);
+      body.append(priceRow);
+    }
+
+    element.append(imageWrap, body);
+    return element;
+  }
+
+  function groupedHaremCharacters() {
+    const groups = new Map();
+    for (const card of chars) {
+      const key = card.rarity === "Love"
+        ? `copy:${card.harem_id}`
+        : (Number(card.character_id) > 0 ? `character:${card.character_id}` : `copy:${card.harem_id}`);
+      const quantity = Math.max(1, Number(card.qty ?? card.quantity ?? 1));
+      const existing = groups.get(key);
+      if (!existing) {
+        groups.set(key, { ...card, copy_count: quantity, _newest: card.acquired_at || null });
+        continue;
+      }
+      existing.copy_count += quantity;
+      existing.is_favorite = Boolean(existing.is_favorite || card.is_favorite);
+      const existingDate = Date.parse(existing._newest || "") || 0;
+      const cardDate = Date.parse(card.acquired_at || "") || 0;
+      if (cardDate > existingDate) {
+        existing._newest = card.acquired_at;
+        existing.harem_id = card.harem_id;
+        existing.acquired_at = card.acquired_at;
+      }
+    }
+    return [...groups.values()];
+  }
+
+  function filteredSortedHarem() {
+    const search = haremSearch.trim().toLocaleLowerCase();
+    const entries = groupedHaremCharacters().filter(card => {
+      if (currentFilter !== "All" && card.rarity !== currentFilter) return false;
+      if (!search) return true;
+      return `${card.name || ""} ${card.anime || ""}`.toLocaleLowerCase().includes(search);
+    });
+    return entries.sort((left, right) => {
+      if (haremSort === "rarity") {
+        return Number(right.rarity_score || 0) - Number(left.rarity_score || 0)
+          || displayName(left.name).localeCompare(displayName(right.name));
+      }
+      if (haremSort === "copies") {
+        return Number(right.copy_count || 1) - Number(left.copy_count || 1)
+          || Number(right.rarity_score || 0) - Number(left.rarity_score || 0);
+      }
+      if (haremSort === "name") {
+        return displayName(left.name).localeCompare(displayName(right.name));
+      }
+      return (Date.parse(right._newest || right.acquired_at || "") || 0)
+        - (Date.parse(left._newest || left.acquired_at || "") || 0)
+        || Number(right.harem_id || 0) - Number(left.harem_id || 0);
+    });
+  }
+
+  function updateCollectionProgress() {
+    const section = document.getElementById("collection-progress");
+    const total = Number(haremCompletion?.catalog_total || 0);
+    const owned = Math.max(0, Number(haremCompletion?.owned_unique || 0));
+    if (!Number.isFinite(total) || total <= 0) {
+      section.hidden = true;
+      return;
+    }
+    const percentage = Math.max(0, Math.min(100, Number(haremCompletion?.percentage ?? Math.round(owned / total * 100))));
+    document.getElementById("completion-percent").textContent = `${Math.round(percentage)}%`;
+    document.getElementById("completion-count").textContent = `${Math.min(owned, total)} / ${total} unique cards`;
+    document.getElementById("completion-bar").style.width = `${percentage}%`;
+    section.hidden = false;
+  }
+
+  function renderHarem() {
+    if (imageObserver) imageObserver.disconnect();
+    updateCollectionProgress();
+    const list = filteredSortedHarem();
+    if (!list.length) {
+      const profileCount = Number(reportedHaremCount);
+      const mismatch = currentFilter === "All" && !haremSearch && Number.isSafeInteger(profileCount) && profileCount > 0;
+      const emptyText = haremSearch
+        ? "No cards match that search"
+        : (currentFilter === "All" ? "Your Harem is empty" : `No ${currentFilter} characters`);
+      setEmpty(
+        "harem-out",
+        mismatch ? "⚠️" : "🌸",
+        mismatch ? `Your profile has ${profileCount} card(s), but no card records were returned. Retry after the API refreshes.` : emptyText,
+        mismatch ? () => { void loadHarem(true); } : null,
+      );
+      return;
+    }
+    const grid = document.createElement("div");
+    grid.className = "grid";
+    list.forEach(card => grid.append(createCharacterCard(card)));
+    document.getElementById("harem-out").replaceChildren(grid);
+    lazyLoadCardImages();
+  }
+
+  function renderMarket() {
+    if (!marketListings.length) {
+      setEmpty("market-out", "🏪", "No cards are listed right now");
+      return;
+    }
+    const grid = document.createElement("div");
+    grid.className = "grid";
+    marketListings.forEach(listing => grid.append(createCharacterCard(listing, listing)));
+    document.getElementById("market-out").replaceChildren(grid);
+    lazyLoadCardImages();
+  }
+
+  function loveLevelDescription(card) {
+    const level = Math.max(1, Number(card?.level || 1));
+    if (card?.is_max || level >= 5) return `L${level} · MAX`;
+    const points = Math.max(0, Number(card?.level_points || 0));
+    const target = Math.max(1, Number(card?.next_target || 0));
+    return `L${level} · ${points} / ${target} points`;
+  }
+
+  function appendLoveArt(container, card, className = "love-art") {
+    const art = document.createElement("div");
+    art.className = className;
+    const placeholder = document.createElement("div");
+    placeholder.className = "card-ph";
+    placeholder.textContent = "❤️";
+    const mediaType = normalizedCatalogMediaType(card?.media_type);
+    const media = document.createElement(mediaType === "video" ? "video" : "img");
+    media.className = "card-img";
+    media.dataset.fileId = String(card?.image_url || "");
+    media.dataset.mediaType = mediaType;
+    if (media instanceof HTMLVideoElement) {
+      media.muted = true;
+      media.loop = true;
+      media.playsInline = true;
+      media.preload = "metadata";
+    } else {
+      media.alt = displayName(card?.name, "Love card");
+    }
+    art.append(placeholder, media);
+    container.append(art);
+  }
+
+  function makeLoveAction(label, action, extraClass = "") {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `love-action ${extraClass}`.trim();
+    button.textContent = label;
+    button.disabled = loveActionBusy;
+    button.addEventListener("click", () => {
+      if (action === "date") {
+        loveDateOpen = !loveDateOpen;
+        renderLove();
+        return;
+      }
+      void runLoveAction(action);
+    });
+    return button;
+  }
+
+  function renderLove() {
+    const output = document.getElementById("love-out");
+    const count = document.getElementById("love-count");
+    if (!loveOverview || typeof loveOverview !== "object") {
+      count.textContent = "—";
+      setEmpty("love-out", "❤️", "Love cards could not be loaded.", () => { void loadLove(true); });
+      return;
+    }
+    const catalog = Array.isArray(loveOverview.catalog) ? loveOverview.catalog : [];
+    const owned = Array.isArray(loveOverview.owned) ? loveOverview.owned : [];
+    const active = loveOverview.active && typeof loveOverview.active === "object" ? loveOverview.active : null;
+    count.textContent = `${owned.length} owned · ${catalog.length} catalog`;
+
+    const shell = document.createElement("div");
+    shell.className = "love-shell";
+    const panel = document.createElement("section");
+    panel.className = "love-glass";
+
+    if (active) {
+      const activeWrap = document.createElement("div");
+      activeWrap.className = "love-active";
+      appendLoveArt(activeWrap, active);
+      const info = document.createElement("div");
+      const eyebrow = document.createElement("div");
+      eyebrow.className = "love-eyebrow";
+      eyebrow.textContent = `${active.love_code || "Love"} · Active companion`;
+      const name = document.createElement("div");
+      name.className = "love-name";
+      name.textContent = displayName(active.name, "Love card");
+      const anime = document.createElement("div");
+      anime.className = "love-sub";
+      anime.textContent = displayName(active.anime, "—");
+      const levelLine = document.createElement("div");
+      levelLine.className = "love-level-line";
+      const level = Math.max(1, Number(active.level || 1));
+      const points = Math.max(0, Number(active.level_points || 0));
+      const target = Math.max(1, Number(active.next_target || 0));
+      const isMax = Boolean(active.is_max) || level >= 5;
+      levelLine.innerHTML = "";
+      const left = document.createElement("span");
+      left.textContent = isMax ? "Level 5 · MAX" : `Level ${level}`;
+      const right = document.createElement("span");
+      right.textContent = isMax ? "Complete" : `${points} / ${target}`;
+      levelLine.append(left, right);
+      const progress = document.createElement("div");
+      progress.className = "love-progress";
+      const bar = document.createElement("span");
+      bar.style.width = `${isMax ? 100 : Math.max(0, Math.min(100, (points / target) * 100))}%`;
+      progress.append(bar);
+      info.append(eyebrow, name, anime, levelLine, progress);
+      activeWrap.append(info);
+      panel.append(activeWrap);
+
+      const actions = document.createElement("div");
+      actions.className = "love-action-grid";
+      actions.append(
+        makeLoveAction("💋 Kiss · +2", "kiss"),
+        makeLoveAction("🤗 Hug · +5", "hug"),
+        makeLoveAction("✨ Date", "date", "primary"),
+        makeLoveAction("💞 Romance", "romance", "romance"),
+      );
+      panel.append(actions);
+      if (loveDateOpen) {
+        const dates = document.createElement("div");
+        dates.className = "love-date-panel";
+        const restaurant = document.createElement("button");
+        restaurant.type = "button";
+        restaurant.className = "love-date-choice";
+        restaurant.innerHTML = "";
+        const rt = document.createElement("span");
+        rt.textContent = "🍽 Restaurant";
+        const rs = document.createElement("small");
+        rs.textContent = "1,000 Neko · +5 points · 3h cooldown";
+        restaurant.append(rt, rs);
+        restaurant.disabled = loveActionBusy;
+        restaurant.addEventListener("click", () => { void runLoveAction("restaurant"); });
+        const cinema = document.createElement("button");
+        cinema.type = "button";
+        cinema.className = "love-date-choice";
+        const ct = document.createElement("span");
+        ct.textContent = "🎬 Cinema";
+        const cs = document.createElement("small");
+        cs.textContent = "3,000 Neko · +8 points · 3h cooldown";
+        cinema.append(ct, cs);
+        cinema.disabled = loveActionBusy;
+        cinema.addEventListener("click", () => { void runLoveAction("cinema"); });
+        dates.append(restaurant, cinema);
+        panel.append(dates);
+      }
+      const sell = makeLoveAction("List active Love at its fixed original price", "sell", "sell");
+      sell.style.width = "100%";
+      sell.style.marginTop = "10px";
+      panel.append(sell);
+    } else {
+      const eyebrow = document.createElement("div");
+      eyebrow.className = "love-eyebrow";
+      eyebrow.textContent = "Love ❤️ · non-spawning collection";
+      const title = document.createElement("div");
+      title.className = "love-title";
+      title.textContent = "Choose a special companion";
+      const copy = document.createElement("div");
+      copy.className = "love-copy";
+      copy.textContent = "Love cards are bought from this fixed-price catalog, never appear in random spawns, and do not change scores or leaderboards.";
+      panel.append(eyebrow, title, copy);
+    }
+    shell.append(panel);
+
+    if (owned.length) {
+      const heading = document.createElement("div");
+      heading.className = "love-section-title";
+      heading.textContent = owned.length > 1 ? "Your Love cards — select the active one" : "Your Love card";
+      shell.append(heading);
+      const rows = document.createElement("div");
+      rows.className = "love-owned-list";
+      owned.forEach(card => {
+        const row = document.createElement("div");
+        row.className = "love-owned-row";
+        const main = document.createElement("div");
+        main.className = "love-owned-main";
+        const cardName = document.createElement("div");
+        cardName.className = "love-owned-name";
+        cardName.textContent = `${card.love_code || "Love"} · ${displayName(card.name, "Love card")}`;
+        const meta = document.createElement("div");
+        meta.className = "love-owned-meta";
+        meta.textContent = loveLevelDescription(card);
+        main.append(cardName, meta);
+        const select = document.createElement("button");
+        select.type = "button";
+        select.className = `love-select${card.is_active ? " selected" : ""}`;
+        select.textContent = card.is_active ? "Active" : "Select";
+        select.disabled = loveActionBusy || Boolean(card.is_active);
+        select.addEventListener("click", () => { void selectLove(card.love_code); });
+        row.append(main, select);
+        rows.append(row);
+      });
+      shell.append(rows);
+    }
+
+    const catalogTitle = document.createElement("div");
+    catalogTitle.className = "love-section-title";
+    catalogTitle.textContent = "Lovelist catalog";
+    shell.append(catalogTitle);
+    if (!catalog.length) {
+      const unavailable = document.createElement("div");
+      unavailable.className = "love-copy";
+      unavailable.textContent = "No Love cards are listed by the catalog owner yet.";
+      shell.append(unavailable);
+    } else {
+      const grid = document.createElement("div");
+      grid.className = "love-catalog";
+      catalog.forEach(card => {
+        const catalogCard = document.createElement("article");
+        catalogCard.className = "love-catalog-card";
+        appendLoveArt(catalogCard, card, "love-catalog-art");
+        const body = document.createElement("div");
+        body.className = "love-catalog-body";
+        const cardName = document.createElement("div");
+        cardName.className = "love-catalog-name";
+        cardName.textContent = `${card.love_code || "Love"} · ${displayName(card.name, "Love card")}`;
+        const anime = document.createElement("div");
+        anime.className = "love-catalog-anime";
+        anime.textContent = displayName(card.anime, "—");
+        const buy = document.createElement("button");
+        buy.type = "button";
+        buy.className = "love-buy";
+        const alreadyOwned = owned.length > 0;
+        buy.textContent = alreadyOwned ? "Already own Love" : `Buy · ${formatNeko(card.base_price)}`;
+        buy.disabled = alreadyOwned || loveActionBusy;
+        buy.addEventListener("click", () => { void purchaseLove(card); });
+        body.append(cardName, anime, buy);
+        catalogCard.append(body);
+        grid.append(catalogCard);
+      });
+      shell.append(grid);
+    }
+    output.replaceChildren(shell);
+    lazyLoadCardImages();
+  }
+
+  async function loadLove(force = false) {
+    if (!uid) {
+      loveOverview = null;
+      loveLoaded = false;
+      setEmpty("love-out", "🔒", "Open this Mini App from Telegram");
+      return;
+    }
+    if (loveLoading || (loveLoaded && !force)) return;
+    loveLoading = true;
+    setLoading("love-out", "LOADING LOVE");
+    try {
+      const response = await apiFetch("/love");
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      loveOverview = await response.json();
+      loveLoaded = true;
+      renderLove();
+    } catch (_) {
+      loveOverview = null;
+      loveLoaded = false;
+      renderLove();
+    } finally {
+      loveLoading = false;
+    }
+  }
+
+  async function purchaseLove(card) {
+    if (loveActionBusy || !card?.love_code) return;
+    const prompt = `Buy ${displayName(card.name, "this Love card")} for ${formatNeko(card.base_price)}?`;
+    const proceed = confirmed => { if (confirmed) void doPurchaseLove(card); };
+    try {
+      if (tg?.showConfirm) { tg.showConfirm(prompt, proceed); return; }
+    } catch (_) {}
+    proceed(window.confirm(prompt));
+  }
+
+  async function doPurchaseLove(card) {
+    loveActionBusy = true;
+    renderLove();
+    try {
+      const response = await apiFetch(`/love/buy/${encodeURIComponent(String(card.love_code))}`, { method: "POST" });
+      const payload = await responsePayload(response);
+      if (!response.ok) {
+        showToast(errorMessage(payload, "This Love card could not be purchased."), true);
+        return;
+      }
+      haptic("medium");
+      showToast(`${displayName(payload?.name, "Love card")} joined your Harem at Level 1.`);
+      await Promise.all([loadLove(true), loadHarem(true), loadUser()]);
+    } catch (_) {
+      showToast("Could not contact Love. Please try again.", true);
+    } finally {
+      loveActionBusy = false;
+      renderLove();
+    }
+  }
+
+  async function selectLove(loveCode) {
+    if (loveActionBusy || !loveCode) return;
+    loveActionBusy = true;
+    renderLove();
+    try {
+      const response = await apiFetch(`/love/select/${encodeURIComponent(String(loveCode))}`, { method: "POST" });
+      const payload = await responsePayload(response);
+      if (!response.ok) {
+        showToast(errorMessage(payload, "Could not select that Love card."), true);
+        return;
+      }
+      haptic();
+      showToast(`${displayName(payload?.name, "Love card")} is now active.`);
+      await Promise.all([loadLove(true), loadHarem(true)]);
+    } catch (_) {
+      showToast("Could not contact Love. Please try again.", true);
+    } finally {
+      loveActionBusy = false;
+      renderLove();
+    }
+  }
+
+  async function runLoveAction(action) {
+    if (loveActionBusy) return;
+    if (action === "sell") {
+      const active = loveOverview?.active;
+      if (!active) return;
+      const prompt = `List ${displayName(active.name, "this Love card")} for its fixed original price of ${formatNeko(active.base_price)}? Your level progress will be held in escrow until it is sold or cancelled.`;
+      const proceed = confirmed => { if (confirmed) void sellActiveLove(); };
+      try {
+        if (tg?.showConfirm) { tg.showConfirm(prompt, proceed); return; }
+      } catch (_) {}
+      proceed(window.confirm(prompt));
+      return;
+    }
+    loveActionBusy = true;
+    renderLove();
+    try {
+      const response = await apiFetch("/love/action", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action }),
+      });
+      const payload = await responsePayload(response);
+      if (!response.ok) {
+        showToast(errorMessage(payload, "This Love action could not be completed."), true);
+        return;
+      }
+      const details = [];
+      const points = Number(payload?.points_awarded || 0);
+      const reward = Number(payload?.reward || 0);
+      if (points) details.push(`+${points} points`);
+      if (reward) details.push(`+${formatNeko(reward)}`);
+      if (payload?.leveled_up) details.push("Level up!");
+      if (!details.length) details.push("Done");
+      haptic("medium");
+      showToast(`${displayName(payload?.state?.name, "Love")}: ${details.join(" · ")}`);
+      loveDateOpen = false;
+      await Promise.all([loadLove(true), loadHarem(true), loadUser()]);
+    } catch (_) {
+      showToast("Could not contact Love. Please try again.", true);
+    } finally {
+      loveActionBusy = false;
+      renderLove();
+    }
+  }
+
+  async function sellActiveLove() {
+    if (loveActionBusy) return;
+    loveActionBusy = true;
+    renderLove();
+    try {
+      const response = await apiFetch("/love/sell", { method: "POST" });
+      const payload = await responsePayload(response);
+      if (!response.ok) {
+        showToast(errorMessage(payload, "This Love card could not be listed."), true);
+        return;
+      }
+      haptic("medium");
+      showToast(`${displayName(payload?.name, "Love card")} is listed for ${formatNeko(payload?.price)}.`);
+      loveDateOpen = false;
+      await Promise.all([loadLove(true), loadHarem(true), loadMarket(true), loadUser()]);
+    } catch (_) {
+      showToast("Could not contact Love. Please try again.", true);
+    } finally {
+      loveActionBusy = false;
+      renderLove();
+    }
+  }
+
+  function renderLeaderboard(entries) {
+    if (!entries.length) {
+      setEmpty("lb-out", "📊", "No collectors yet");
+      return;
+    }
+    const medals = ["🥇", "🥈", "🥉"];
+    const list = document.createElement("div");
+    list.className = "lb";
+    entries.forEach((user, index) => {
+      const rank = Number.isInteger(user.rank) ? user.rank : index + 1;
+      const name = displayName(user.full_name || user.username, "Unknown");
+      const row = document.createElement("div");
+      row.className = `lb-row${rank === 1 ? " gold" : ""}`;
+      const rankNode = document.createElement("div");
+      rankNode.className = "lb-pos";
+      rankNode.textContent = medals[rank - 1] || String(rank);
+      const avatar = document.createElement("div");
+      avatar.className = "lb-ava";
+      const avatarFallback = document.createElement("span");
+      avatarFallback.className = "lb-ava-fallback";
+      avatarFallback.textContent = "🥷";
+      avatarFallback.setAttribute("aria-label", "No Telegram profile photo");
+      const avatarImage = document.createElement("img");
+      avatarImage.className = "lb-ava-img";
+      avatarImage.alt = "";
+      avatarImage.hidden = true;
+      avatar.append(avatarFallback, avatarImage);
+      void loadLeaderboardAvatar(avatarImage, avatarFallback, user.user_id);
+      const info = document.createElement("div");
+      info.className = "lb-info";
+      const nameNode = document.createElement("div");
+      nameNode.className = "lb-name";
+      nameNode.textContent = name;
+      const sub = document.createElement("div");
+      sub.className = "lb-sub";
+      const rarity = validRarity(user.highest_rarity);
+      sub.textContent = rarity
+        ? `${user.total_claims ?? 0} total claims · ${rarityEmoji(rarity)} ${rarity}`
+        : `${user.total_claims ?? 0} total claims`;
+      const score = document.createElement("div");
+      score.className = "lb-score";
+      score.textContent = String(user.total_claims ?? 0);
+      info.append(nameNode, sub);
+      row.append(rankNode, avatar, info, score);
+      list.append(row);
+    });
+    document.getElementById("lb-out").replaceChildren(list);
+  }
+
+  function candidateArray(candidate) {
+    if (Array.isArray(candidate)) return candidate;
+    if (!candidate || typeof candidate !== "object") return [];
+    const values = Object.values(candidate);
+    return values.length && values.every(value => value && typeof value === "object") ? values : [];
+  }
+
+  function normalizeHaremCharacters(payload) {
+    const candidates = [
+      payload?.characters,
+      payload?.harem,
+      payload?.items,
+      payload?.cards,
+      payload?.data?.characters,
+      payload?.data?.harem,
+      payload?.data?.items,
+      payload,
+    ];
+    let entries = [];
+    for (const candidate of candidates) {
+      const normalized = candidateArray(candidate);
+      if (normalized.length || Array.isArray(candidate)) {
+        entries = normalized;
+        break;
+      }
+    }
+    return entries
+      .filter(card => card && typeof card === "object")
+      .map(card => {
+        const rawCharacterId = card.character_id ?? card.character?.id ?? card.id;
+        const characterId = Number(rawCharacterId);
+        const imageUrl = typeof card.image_url === "string"
+          ? card.image_url
+          : (typeof card.file_id === "string"
+            ? card.file_id
+            : (typeof card.photo_file_id === "string"
+              ? card.photo_file_id
+              : (typeof card.image === "string" ? card.image : "")));
+        return {
+          ...card,
+          harem_id: card.harem_id ?? card.copy_id ?? card.id ?? rawCharacterId,
+          character_id: Number.isSafeInteger(characterId) && characterId > 0 ? characterId : 0,
+          rarity: validRarity(card.rarity) || "Common",
+          image_url: imageUrl,
+          media_type: normalizedCatalogMediaType(
+            card.media_type || (typeof card.video_file_id === "string" ? "video" : "photo")
+          ),
+        };
+      });
+  }
+
+  function haremCopyCount(entries) {
+    return entries.reduce((total, card) => {
+      const quantity = Number(card.qty ?? card.quantity ?? 1);
+      return total + (Number.isSafeInteger(quantity) && quantity > 0 ? quantity : 1);
+    }, 0);
+  }
+
+  function formatCountdown(seconds) {
+    const total = Math.max(0, Math.ceil(Number(seconds) || 0));
+    if (!total) return "Ready";
+    const hours = Math.floor(total / 3600);
+    const minutes = Math.floor((total % 3600) / 60);
+    if (hours) return `${hours}h ${minutes}m`;
+    return `${Math.max(1, minutes)}m`;
+  }
+
+  function createDailyClaim(label, status, available, buttonLabel, onClaim) {
+    const tile = document.createElement("div");
+    tile.className = "daily-claim";
+    const labelNode = document.createElement("div");
+    labelNode.className = "daily-claim-label";
+    labelNode.textContent = label;
+    const statusNode = document.createElement("div");
+    statusNode.className = "daily-claim-status";
+    statusNode.textContent = status;
+    const button = document.createElement("button");
+    button.className = "daily-claim-button";
+    button.type = "button";
+    button.textContent = available ? buttonLabel : "On cooldown";
+    button.disabled = !available || dailyClaiming;
+    button.addEventListener("click", onClaim);
+    tile.append(labelNode, statusNode, button);
+    return tile;
+  }
+
+  function renderDailyHub() {
+    const output = document.getElementById("daily-hub-content");
+    if (!dailyHub || typeof dailyHub !== "object") {
+      const error = document.createElement("div");
+      error.className = "daily-hub-error";
+      error.textContent = "Daily rewards could not be loaded.";
+      output.replaceChildren(error);
+      return;
+    }
+    const card = dailyHub.daily_card || {};
+    const neko = dailyHub.daily_neko || {};
+    const claims = document.createElement("div");
+    claims.className = "daily-claims";
+    claims.append(
+      createDailyClaim(
+        "Daily card",
+        card.available ? "A random card is waiting." : `Ready in ${formatCountdown(card.remaining_seconds)}`,
+        card.available === true,
+        "Claim card",
+        () => { void claimDaily("card"); },
+      ),
+      createDailyClaim(
+        "Daily Neko",
+        neko.available ? "Claim 1–49 Neko." : `Ready in ${formatCountdown(neko.remaining_seconds)}`,
+        neko.available === true,
+        "Claim Neko",
+        () => { void claimDaily("neko"); },
+      ),
+    );
+    output.replaceChildren(claims);
+  }
+
+  async function loadDailyHub(force = false) {
+    if (!uid) {
+      dailyHub = null;
+      renderDailyHub();
+      return;
+    }
+    if (dailyHubLoading || (dailyHubLoaded && !force)) return;
+    dailyHubLoading = true;
+    try {
+      const response = await apiFetch("/daily-hub");
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      dailyHub = await response.json();
+      dailyHubLoaded = true;
+      renderDailyHub();
+    } catch (_) {
+      dailyHubLoaded = false;
+      dailyHub = null;
+      renderDailyHub();
+    } finally {
+      dailyHubLoading = false;
+    }
+  }
+
+  async function claimDaily(kind) {
+    if (dailyClaiming) return;
+    dailyClaiming = true;
+    renderDailyHub();
+    const endpoint = kind === "neko" ? "/dailyneko/claim" : "/daily/claim";
+    try {
+      const response = await apiFetch(endpoint, { method: "POST" });
+      const payload = await responsePayload(response);
+      if (!response.ok) {
+        showToast(errorMessage(payload, "Your daily reward could not be claimed."), true);
+        if (response.status === 409) await loadDailyHub(true);
+        return;
+      }
+      haptic("medium");
+      if (kind === "neko") {
+        showToast(`Daily Neko claimed: +${formatNeko(payload?.reward)}.`);
+      } else {
+        showToast(`Daily card claimed: ${displayName(payload?.reward?.name, "new card")}.`);
+      }
+      await Promise.all([loadDailyHub(true), loadUser(), loadHarem(true)]);
+    } catch (_) {
+      showToast("Could not contact the Daily Hub. Please try again.", true);
+    } finally {
+      dailyClaiming = false;
+      renderDailyHub();
+    }
+  }
+
+  async function loadUser() {
+    if (!uid) return;
+    try {
+      const response = await apiFetch(`/user/${uid}`);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const user = await response.json();
+      const name = displayName(user.full_name || user.username, "User");
+      reportedHaremCount = Number.isSafeInteger(Number(user.harem_count)) ? Number(user.harem_count) : null;
+      document.getElementById("uname").textContent = name;
+      document.getElementById("telegram-id").textContent = `Telegram ID: ${user.user_id || uid}`;
+      const highest = validRarity(user.highest_rarity) || "—";
+      document.getElementById("top-r").textContent = `✦ ${highest}`;
+      document.getElementById("s-balance").textContent = formatNeko(user.neko_balance).replace(" Neko", "");
+      document.getElementById("s-harem").textContent = String(user.harem_count ?? 0);
+      document.getElementById("s-claims").textContent = String(user.total_claims ?? 0);
+      document.getElementById("s-unique").textContent = String(user.unique_characters ?? 0);
+      document.getElementById("r-global").textContent = `#${user.global_rank ?? "—"}`;
+      const claims = Number(user.total_claims || 0);
+      const level = Math.floor(claims / 20) + 1;
+      const progress = (claims % 20) / 20 * 100;
+      document.getElementById("lvl-lbl").textContent = `Level ${level}`;
+      document.getElementById("xp-lbl").textContent = `${claims % 20} / 20 XP`;
+      document.getElementById("xp-bar").style.width = `${progress}%`;
+      setAvatar(telegramUser, name);
+      if (haremLoaded && chars.length === 0) renderHarem();
+    } catch (_) {
+      // Telegram identity is already visible locally. No noisy API status line
+      // is shown in the profile by request.
+    }
+  }
+
+  async function loadHarem(force = false) {
+    if (!uid) {
+      haremLoaded = false;
+      haremCompletion = null;
+      updateCollectionProgress();
+      setEmpty("harem-out", "🔒", "Open this Mini App from Telegram");
+      return;
+    }
+    if (haremLoading || (haremLoaded && !force)) return;
+    haremLoading = true;
+    setLoading("harem-out", "LOADING HAREM");
+    try {
+      const response = await apiFetch(`/harem/${uid}`);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const payload = await response.json();
+      chars = normalizeHaremCharacters(payload);
+      haremCompletion = payload?.completion && typeof payload.completion === "object" ? payload.completion : null;
+      const rankedHarem = chars.filter(card => card.rarity !== "Love");
+      const copyCount = haremCopyCount(rankedHarem);
+      const uniqueCount = new Set(rankedHarem.map(card => card.character_id).filter(Boolean)).size;
+      haremLoaded = true;
+      document.getElementById("s-harem").textContent = String(copyCount);
+      document.getElementById("s-unique").textContent = String(uniqueCount);
+      document.getElementById("harem-count").textContent = `${copyCount} cards · ${uniqueCount} unique`;
+      renderHarem();
+    } catch (_) {
+      haremLoaded = false;
+      chars = [];
+      haremCompletion = null;
+      updateCollectionProgress();
+      setEmpty(
+        "harem-out",
+        "⚠️",
+        "Couldn't load Harem. Please try again.",
+        () => { void loadHarem(true); },
+      );
+    } finally {
+      haremLoading = false;
+    }
+  }
+
+  async function loadMarket(force = false) {
+    if (!uid) {
+      setEmpty("market-out", "🔒", "Open this Mini App from Telegram");
+      return;
+    }
+    if (marketLoaded && !force) return;
+    setLoading("market-out", "LOADING MARKET");
+    try {
+      const response = await apiFetch("/market");
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const payload = await response.json();
+      const rawListings = Array.isArray(payload)
+        ? payload
+        : (Array.isArray(payload?.listings) ? payload.listings : []);
+      marketListings = rawListings
+        .filter(listing => listing && typeof listing === "object")
+        .map(listing => ({
+          ...listing,
+          media_type: normalizedCatalogMediaType(listing.media_type),
+        }));
+      marketLoaded = true;
+      document.getElementById("market-count").textContent = `${marketListings.length} available`;
+      renderMarket();
+    } catch (_) {
+      marketLoaded = false;
+      setEmpty(
+        "market-out",
+        "🏪",
+        "Couldn't load the market. Please try again.",
+        () => { void loadMarket(true); },
+      );
+    }
+  }
+
+  async function loadLeaderboard() {
+    if (!uid) {
+      setEmpty("lb-out", "🔒", "Open this Mini App from Telegram");
+      return;
+    }
+    setLoading("lb-out", "LOADING LEADERBOARD");
+    try {
+      const response = await apiFetch("/leaderboard");
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const payload = await response.json();
+      const entries = Array.isArray(payload)
+        ? payload
+        : (Array.isArray(payload?.leaderboard) ? payload.leaderboard : []);
+      leaderboardLoaded = true;
+      renderLeaderboard(entries);
+    } catch (_) {
+      leaderboardLoaded = false;
+      setEmpty(
+        "lb-out",
+        "📊",
+        "Couldn't load leaderboard. Please try again.",
+        () => { void loadLeaderboard(); },
+      );
+    }
+  }
+
+  function errorMessage(payload, fallback) {
+    const detail = payload?.detail;
+    if (typeof detail === "string") return detail;
+    if (detail && typeof detail.message === "string") return detail.message;
+    return fallback;
+  }
+
+  function confirmPurchase(listing) {
+    if (buyingListingId !== null) return;
+    const prompt = `Buy ${displayName(listing.name, "this card")} for ${formatNeko(listing.price)}?`;
+    const continuePurchase = confirmed => {
+      if (confirmed) void purchaseListing(listing);
+    };
+    try {
+      if (tg?.showConfirm) {
+        tg.showConfirm(prompt, continuePurchase);
+        return;
+      }
+    } catch (_) {}
+    continuePurchase(window.confirm(prompt));
+  }
+
+  async function purchaseListing(listing) {
+    if (buyingListingId !== null || listing?.can_buy === false) {
+      if (listing?.can_buy === false) showToast("You cannot buy this listing.", true);
+      return;
+    }
+    buyingListingId = listing.listing_id;
+    renderMarket();
+    const detailBuy = document.getElementById("detail-buy");
+    if (activeListing?.listing_id === listing.listing_id) detailBuy.disabled = true;
+    try {
+      const response = await apiFetch(`/market/${encodeURIComponent(String(listing.listing_id))}/buy`, { method: "POST" });
+      const payload = await responsePayload(response);
+      if (!response.ok) {
+        if (response.status === 404) {
+          marketListings = marketListings.filter(item => item.listing_id !== listing.listing_id);
+          document.getElementById("market-count").textContent = `${marketListings.length} available`;
+          renderMarket();
+        }
+        showToast(errorMessage(payload, "Purchase could not be completed."), true);
+        return;
+      }
+      closeCardDetail();
+      haptic("medium");
+      showToast(`${displayName(payload?.harem_character?.name, "Card")} was added to your Harem!`);
+      const refreshTasks = [loadUser(), loadHarem(true), loadMarket(true)];
+      // A successful player-escrow Love purchase initializes fresh Level 1
+      // state; invalidate the cached Love overview in the same refresh cycle.
+      if (listing?.rarity === "Love") refreshTasks.push(loadLove(true));
+      await Promise.all(refreshTasks);
+    } catch (_) {
+      showToast("Could not contact the Market. Please try again.", true);
+    } finally {
+      buyingListingId = null;
+      if (document.getElementById("p-market").classList.contains("active")) renderMarket();
+      if (!document.getElementById("card-modal").hidden && activeListing) {
+        document.getElementById("detail-buy").disabled = false;
+      }
+    }
+  }
+
+  function goPage(name) {
+    document.querySelectorAll(".page").forEach(page => page.classList.remove("active"));
+    document.querySelectorAll(".nav-item").forEach(item => item.classList.remove("active"));
+    document.getElementById(`p-${name}`).classList.add("active");
+    document.getElementById(`nav-${name}`).classList.add("active");
+    if (name === "profile") void loadDailyHub(true);
+    if (name === "harem") void loadHarem(true);
+    if (name === "market") void loadMarket();
+    if (name === "love") void loadLove(true);
+    if (name === "lb" && !leaderboardLoaded) void loadLeaderboard();
+  }
+
+  function filt(rarity, button) {
+    currentFilter = rarity;
+    document.querySelectorAll(".chip").forEach(item => item.classList.remove("on"));
+    button.classList.add("on");
+    renderHarem();
+  }
+
+  function enableRarityChipDragging() {
+    const chips = document.getElementById("rarity-chips");
+    let pointerId = null;
+    let startX = 0;
+    let startScrollLeft = 0;
+    let didDrag = false;
+    chips.addEventListener("pointerdown", event => {
+      if (event.pointerType === "mouse" && event.button !== 0) return;
+      pointerId = event.pointerId;
+      startX = event.clientX;
+      startScrollLeft = chips.scrollLeft;
+      didDrag = false;
+      chips.setPointerCapture?.(event.pointerId);
+    });
+    chips.addEventListener("pointermove", event => {
+      if (pointerId !== event.pointerId) return;
+      const delta = event.clientX - startX;
+      if (Math.abs(delta) <= 4 && !didDrag) return;
+      didDrag = true;
+      chips.scrollLeft = startScrollLeft - delta;
+      event.preventDefault();
+    });
+    const stopDragging = event => {
+      if (pointerId !== event.pointerId) return;
+      pointerId = null;
+      chips.releasePointerCapture?.(event.pointerId);
+    };
+    chips.addEventListener("pointerup", stopDragging);
+    chips.addEventListener("pointercancel", stopDragging);
+    chips.addEventListener("click", event => {
+      if (!didDrag) return;
+      event.preventDefault();
+      event.stopPropagation();
+      didDrag = false;
+    }, true);
+  }
+
+  window.addEventListener("pagehide", () => {
+    for (const cache of [imageCache, leaderboardAvatarCache]) {
+      for (const cached of cache.values()) {
+        if (typeof cached === "string") URL.revokeObjectURL(cached);
+      }
+    }
+  });
+
+  document.getElementById("harem-search").addEventListener("input", event => {
+    haremSearch = event.target.value || "";
+    renderHarem();
+  });
+  document.getElementById("harem-sort").addEventListener("change", event => {
+    haremSort = event.target.value || "newest";
+    renderHarem();
+  });
+  document.getElementById("sell-cancel").addEventListener("click", closeSellModal);
+  document.getElementById("sell-confirm").addEventListener("click", () => { void submitSell(); });
+  document.getElementById("sell-price-input").addEventListener("keydown", event => {
+    if (event.key === "Enter") { event.preventDefault(); void submitSell(); }
+  });
+  document.getElementById("burn-cancel").addEventListener("click", closeBurnModal);
+  document.getElementById("burn-confirm").addEventListener("click", () => { void submitBurn(); });
+
+  renderLocalIdentity();
+  enableRarityChipDragging();
+  void loadUser();
+  void loadDailyHub();
+  void loadHarem();
+
+  /* ── VAULT THEME SYSTEM ── */
+  const THEME_CONFIGS = {
+    void:   { class: ["void-theme"],   header: "#080b16" },
+    aurora: { class: ["aurora-theme"], header: "#07151b" },
+    ember:  { class: ["ember-theme"],  header: "#171008" },
+  };
+  const LEGACY_THEME_MAP = { dark: "void", night: "aurora", neko: "ember" };
+  const THEME_NAMES = Object.keys(THEME_CONFIGS);
+
+  function setTheme(name) {
+    const selected = THEME_CONFIGS[name] ? name : "void";
+    const cfg = THEME_CONFIGS[selected];
+    document.body.classList.remove("void-theme", "aurora-theme", "ember-theme");
+    cfg.class.forEach(className => document.body.classList.add(className));
+    localStorage.setItem("hc-theme", selected);
+    THEME_NAMES.forEach(themeName => {
+      const option = document.getElementById(`topt-${themeName}`);
+      if (option) option.classList.toggle("tactive", themeName === selected);
+    });
+    try { if (tg?.setHeaderColor) tg.setHeaderColor(cfg.header); } catch (_) {}
+    closeThemeMenu();
+  }
+
+  function toggleThemeMenu(event) {
+    event.stopPropagation();
+    const dropdown = document.getElementById("theme-dropdown");
+    const button = document.getElementById("theme-dots-btn");
+    const isOpen = dropdown.classList.toggle("open");
+    button.setAttribute("aria-expanded", String(isOpen));
+  }
+
+  function closeThemeMenu() {
+    document.getElementById("theme-dropdown").classList.remove("open");
+    document.getElementById("theme-dots-btn").setAttribute("aria-expanded", "false");
+  }
+
+  document.addEventListener("click", event => {
+    if (!document.getElementById("theme-menu-wrap").contains(event.target)) closeThemeMenu();
+  });
+
+  (function initTheme() {
+    const saved = localStorage.getItem("hc-theme");
+    const selected = THEME_CONFIGS[saved] ? saved : (LEGACY_THEME_MAP[saved] || "void");
+    setTheme(selected);
+  })();
+</script>
+</body>
+</html>
